@@ -2,20 +2,19 @@
 
 import React, { useState, useEffect } from "react";
 import { Card } from "./ui/card";
-import { Checkbox } from "./ui/checkbox";
 import { useTodos } from "../hooks/useTodo";
-import { Badge } from "./ui/badge";
-import { Trash } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { SearchInput } from "./SearchInput";
-import { format } from "date-fns";
+import { TodoItem } from "./TodoItem";
+import { CreateTodo } from "./CreateTodo";
 
 export function TodoList() {
     const [newTitle, setNewTitle] = useState("");
     const [newTags, setNewTags] = useState("");
     const [searchTerm, setSearchTerm] = useState("");
-    const [debouncedSearch, setDebouncedSearch] = useState("");
 
+    // Debounce the search by 300ms so that search isn't executed on every single keypress
+    const [debouncedSearch, setDebouncedSearch] = useState("");
     useEffect(() => {
         const handler = setTimeout(() => setDebouncedSearch(searchTerm), 300);
         return () => clearTimeout(handler);
@@ -43,6 +42,7 @@ export function TodoList() {
             {/* Search bar */}
             <SearchInput value={searchTerm} onSearchChange={setSearchTerm} />
 
+            <CreateTodo search={debouncedSearch} />
             {/* Input for adding new todos */}
             <div className="flex flex-col space-y-2">
                 <div className="flex space-x-2">
@@ -76,55 +76,27 @@ export function TodoList() {
             </div>
 
             {/* List of todos */}
-            <AnimatePresence>
-                {todosQuery.data?.map(todo => (
-                    <motion.div
-                        key={todo.id}
-                        layout
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 10 }}
-                        transition={{ duration: 0.3 }}
-                    >
-                        <Card className="flex flex-row space-y-2 p-4">
-                            <div className="flex items-center space-x-2">
-                                <Checkbox
-                                    checked={todo.completed}
-                                    onCheckedChange={checked =>
-                                        updateTodo.mutate({ ...todo, completed: !!checked })
-                                    }
-                                />
-                                <span className={todo.completed ? "line-through text-gray-400" : ""}>
-                                    {todo.title}
-                                </span>
-                            </div>
-
-                            {/* Tags */}
-                            {todo.tags && (
-                                <div className="flex flex-wrap gap-2">
-                                    {todo.tags.map((tag, idx) => (
-                                        <Badge key={idx}>{tag}</Badge>
-                                    ))}
-                                </div>
-                            )}
-
-                            {/* Dates */}
-                            <div className="text-sm text-gray-500">
-                                <p>Created: {format(new Date(todo.createdAt), "PPP p")}</p>
-                                {todo.dueDate && <p>Due: {format(new Date(todo.dueDate), "PPP p")}</p>}
-                            </div>
-
-                            {/* Delete button */}
-                            <button
-                                onClick={() => deleteTodo.mutate(todo.id)}
-                                className="text-red-500 hover:underline self-start mt-1"
-                            >
-                                <Trash />
-                            </button>
-                        </Card>
-                    </motion.div>
-                ))}
-            </AnimatePresence>
+            <Card className="p-2 ">
+                <AnimatePresence>
+                    {todosQuery.data?.map(todo => (
+                        <motion.div
+                            key={todo.id}
+                            layout
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 10 }}
+                            transition={{ duration: 0.3 }}
+                        >
+                            <TodoItem
+                                key={todo.id}
+                                todo={todo}
+                                updateTodo={updateTodo}
+                                deleteTodo={deleteTodo}
+                            />
+                        </motion.div>
+                    ))}
+                </AnimatePresence>
+            </Card>
 
             {/* Footer */}
             <Card className="p-4">
