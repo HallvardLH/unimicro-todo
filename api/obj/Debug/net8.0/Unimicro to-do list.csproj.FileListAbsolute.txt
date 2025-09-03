@@ -1,0 +1,102 @@
+C:\Users\Hallvard\source\repos\Unimicro to-do list\Unimicro to-do list\api\bin\Debug\net8.0\appsettings.Development.json
+C:\Users\Hallvard\source\repos\Unimicro to-do list\Unimicro to-do list\api\bin\Debug\net8.0\appsettings.json
+C:\Users\Hallvard\source\repos\Unimicro to-do list\Unimicro to-do list\api\bin\Debug\net8.0\Unimicro to-do list.staticwebassets.endpoints.json
+C:\Users\Hallvard\source\repos\Unimicro to-do list\Unimicro to-do list\api\bin\Debug\net8.0\Unimicro to-do list.exe
+C:\Users\Hallvard\source\repos\Unimicro to-do list\Unimicro to-do list\api\bin\Debug\net8.0\Unimicro to-do list.deps.json
+C:\Users\Hallvard\source\repos\Unimicro to-do list\Unimicro to-do list\api\bin\Debug\net8.0\Unimicro to-do list.runtimeconfig.json
+C:\Users\Hallvard\source\repos\Unimicro to-do list\Unimicro to-do list\api\bin\Debug\net8.0\Unimicro to-do list.dll
+C:\Users\Hallvard\source\repos\Unimicro to-do list\Unimicro to-do list\api\bin\Debug\net8.0\Unimicro to-do list.pdb
+C:\Users\Hallvard\source\repos\Unimicro to-do list\Unimicro to-do list\api\bin\Debug\net8.0\Microsoft.OpenApi.dll
+C:\Users\Hallvard\source\repos\Unimicro to-do list\Unimicro to-do list\api\bin\Debug\net8.0\Swashbuckle.AspNetCore.Swagger.dll
+C:\Users\Hallvard\source\repos\Unimicro to-do list\Unimicro to-do list\api\bin\Debug\net8.0\Swashbuckle.AspNetCore.SwaggerGen.dll
+C:\Users\Hallvard\source\repos\Unimicro to-do list\Unimicro to-do list\api\bin\Debug\net8.0\Swashbuckle.AspNetCore.SwaggerUI.dll
+C:\Users\Hallvard\source\repos\Unimicro to-do list\Unimicro to-do list\api\obj\Debug\net8.0\Unimicro to-do list.csproj.AssemblyReference.cache
+C:\Users\Hallvard\source\repos\Unimicro to-do list\Unimicro to-do list\api\obj\Debug\net8.0\rpswa.dswa.cache.json
+C:\Users\Hallvard\source\repos\Unimicro to-do list\Unimicro to-do list\api\obj\Debug\net8.0\Unimicro to-do list.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Hallvard\source\repos\Unimicro to-do list\Unimicro to-do list\api\obj\Debug\net8.0\Unimicro to-do list.AssemblyInfoInputs.cache
+C:\Users\Hallvard\source\repos\Unimicro to-do list\Unimicro to-do list\api\obj\Debug\net8.0\Unimicro to-do list.AssemblyInfo.cs
+C:\Users\Hallvard\source\repos\Unimicro to-do list\Unimicro to-do list\api\obj\Debug\net8.0\Unimicro to-do list.csproj.CoreCompileInputs.cache
+C:\Users\Hallvard\source\repos\Unimicro to-do list\Unimicro to-do list\api\obj\Debug\net8.0\Unimicro to-do list.MvcApplicationPartsAssemblyInfo.cs
+C:\Users\Hallvard\source\repos\Unimicro to-do list\Unimicro to-do list\api\obj\Debug\net8.0\Unimicro to-do list.MvcApplicationPartsAssemblyInfo.cache
+C:\Users\Hallvard\source\repos\Unimicro to-do list\Unimicro to-do list\api\obj\Debug\net8.0\rjimswa.dswa.cache.json
+C:\Users\Hallvard\source\repos\Unimicro to-do list\Unimicro to-do list\api\obj\Debug\net8.0\rjsmrazor.dswa.cache.json
+C:\Users\Hallvard\source\repos\Unimicro to-do list\Unimicro to-do list\api\obj\Debug\net8.0\rjsmcshtml.dswa.cache.json
+C:\Users\Hallvard\source\repos\Unimicro to-do list\Unimicro to-do list\api\obj\Debug\net8.0\scopedcss\bundle\Unimicro to-do list.styles.css
+C:\Users\Hallvard\source\repos\Unimicro to-do list\Unimicro to-do list\api\obj\Debug\net8.0\staticwebassets.build.json
+C:\Users\Hallvard\source\repos\Unimicro to-do list\Unimicro to-do list\api\obj\Debug\net8.0\staticwebassets.build.json.cache
+C:\Users\Hallvard\source\repos\Unimicro to-do list\Unimicro to-do list\api\obj\Debug\net8.0\staticwebassets.development.json
+C:\Users\Hallvard\source\repos\Unimicro to-do list\Unimicro to-do list\api\obj\Debug\net8.0\staticwebassets.build.endpoints.json
+C:\Users\Hallvard\source\repos\Unimicro to-do list\Unimicro to-do list\api\obj\Debug\net8.0\Unimicro.C109861C.Up2Date
+C:\Users\Hallvard\source\repos\Unimicro to-do list\Unimicro to-do list\api\obj\Debug\net8.0\Unimicro to-do list.dll
+C:\Users\Hallvard\source\repos\Unimicro to-do list\Unimicro to-do list\api\obj\Debug\net8.0\refint\Unimicro to-do list.dll
+C:\Users\Hallvard\source\repos\Unimicro to-do list\Unimicro to-do list\api\obj\Debug\net8.0\Unimicro to-do list.pdb
+C:\Users\Hallvard\source\repos\Unimicro to-do list\Unimicro to-do list\api\obj\Debug\net8.0\Unimicro to-do list.genruntimeconfig.cache
+C:\Users\Hallvard\source\repos\Unimicro to-do list\Unimicro to-do list\api\obj\Debug\net8.0\ref\Unimicro to-do list.dll
+C:\Users\Hallvard\source\repos\Unimicro-todo-list\api\bin\Debug\net8.0\appsettings.Development.json
+C:\Users\Hallvard\source\repos\Unimicro-todo-list\api\bin\Debug\net8.0\appsettings.json
+C:\Users\Hallvard\source\repos\Unimicro-todo-list\api\bin\Debug\net8.0\Unimicro to-do list.staticwebassets.endpoints.json
+C:\Users\Hallvard\source\repos\Unimicro-todo-list\api\bin\Debug\net8.0\Unimicro to-do list.exe
+C:\Users\Hallvard\source\repos\Unimicro-todo-list\api\bin\Debug\net8.0\Unimicro to-do list.deps.json
+C:\Users\Hallvard\source\repos\Unimicro-todo-list\api\bin\Debug\net8.0\Unimicro to-do list.runtimeconfig.json
+C:\Users\Hallvard\source\repos\Unimicro-todo-list\api\bin\Debug\net8.0\Unimicro to-do list.dll
+C:\Users\Hallvard\source\repos\Unimicro-todo-list\api\bin\Debug\net8.0\Unimicro to-do list.pdb
+C:\Users\Hallvard\source\repos\Unimicro-todo-list\api\bin\Debug\net8.0\Microsoft.OpenApi.dll
+C:\Users\Hallvard\source\repos\Unimicro-todo-list\api\bin\Debug\net8.0\Swashbuckle.AspNetCore.Swagger.dll
+C:\Users\Hallvard\source\repos\Unimicro-todo-list\api\bin\Debug\net8.0\Swashbuckle.AspNetCore.SwaggerGen.dll
+C:\Users\Hallvard\source\repos\Unimicro-todo-list\api\bin\Debug\net8.0\Swashbuckle.AspNetCore.SwaggerUI.dll
+C:\Users\Hallvard\source\repos\Unimicro-todo-list\api\obj\Debug\net8.0\Unimicro to-do list.csproj.AssemblyReference.cache
+C:\Users\Hallvard\source\repos\Unimicro-todo-list\api\obj\Debug\net8.0\rpswa.dswa.cache.json
+C:\Users\Hallvard\source\repos\Unimicro-todo-list\api\obj\Debug\net8.0\Unimicro to-do list.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Hallvard\source\repos\Unimicro-todo-list\api\obj\Debug\net8.0\Unimicro to-do list.AssemblyInfoInputs.cache
+C:\Users\Hallvard\source\repos\Unimicro-todo-list\api\obj\Debug\net8.0\Unimicro to-do list.AssemblyInfo.cs
+C:\Users\Hallvard\source\repos\Unimicro-todo-list\api\obj\Debug\net8.0\Unimicro to-do list.csproj.CoreCompileInputs.cache
+C:\Users\Hallvard\source\repos\Unimicro-todo-list\api\obj\Debug\net8.0\Unimicro to-do list.MvcApplicationPartsAssemblyInfo.cs
+C:\Users\Hallvard\source\repos\Unimicro-todo-list\api\obj\Debug\net8.0\Unimicro to-do list.MvcApplicationPartsAssemblyInfo.cache
+C:\Users\Hallvard\source\repos\Unimicro-todo-list\api\obj\Debug\net8.0\rjimswa.dswa.cache.json
+C:\Users\Hallvard\source\repos\Unimicro-todo-list\api\obj\Debug\net8.0\rjsmrazor.dswa.cache.json
+C:\Users\Hallvard\source\repos\Unimicro-todo-list\api\obj\Debug\net8.0\rjsmcshtml.dswa.cache.json
+C:\Users\Hallvard\source\repos\Unimicro-todo-list\api\obj\Debug\net8.0\scopedcss\bundle\Unimicro to-do list.styles.css
+C:\Users\Hallvard\source\repos\Unimicro-todo-list\api\obj\Debug\net8.0\staticwebassets.build.json
+C:\Users\Hallvard\source\repos\Unimicro-todo-list\api\obj\Debug\net8.0\staticwebassets.build.json.cache
+C:\Users\Hallvard\source\repos\Unimicro-todo-list\api\obj\Debug\net8.0\staticwebassets.development.json
+C:\Users\Hallvard\source\repos\Unimicro-todo-list\api\obj\Debug\net8.0\staticwebassets.build.endpoints.json
+C:\Users\Hallvard\source\repos\Unimicro-todo-list\api\obj\Debug\net8.0\Unimicro.C109861C.Up2Date
+C:\Users\Hallvard\source\repos\Unimicro-todo-list\api\obj\Debug\net8.0\Unimicro to-do list.dll
+C:\Users\Hallvard\source\repos\Unimicro-todo-list\api\obj\Debug\net8.0\refint\Unimicro to-do list.dll
+C:\Users\Hallvard\source\repos\Unimicro-todo-list\api\obj\Debug\net8.0\Unimicro to-do list.pdb
+C:\Users\Hallvard\source\repos\Unimicro-todo-list\api\obj\Debug\net8.0\Unimicro to-do list.genruntimeconfig.cache
+C:\Users\Hallvard\source\repos\Unimicro-todo-list\api\obj\Debug\net8.0\ref\Unimicro to-do list.dll
+C:\Users\Hallvard\unimicro-todo\api\bin\Debug\net8.0\appsettings.Development.json
+C:\Users\Hallvard\unimicro-todo\api\bin\Debug\net8.0\appsettings.json
+C:\Users\Hallvard\unimicro-todo\api\bin\Debug\net8.0\Unimicro to-do list.staticwebassets.endpoints.json
+C:\Users\Hallvard\unimicro-todo\api\bin\Debug\net8.0\Unimicro to-do list.exe
+C:\Users\Hallvard\unimicro-todo\api\bin\Debug\net8.0\Unimicro to-do list.deps.json
+C:\Users\Hallvard\unimicro-todo\api\bin\Debug\net8.0\Unimicro to-do list.runtimeconfig.json
+C:\Users\Hallvard\unimicro-todo\api\bin\Debug\net8.0\Unimicro to-do list.dll
+C:\Users\Hallvard\unimicro-todo\api\bin\Debug\net8.0\Unimicro to-do list.pdb
+C:\Users\Hallvard\unimicro-todo\api\bin\Debug\net8.0\Microsoft.OpenApi.dll
+C:\Users\Hallvard\unimicro-todo\api\bin\Debug\net8.0\Swashbuckle.AspNetCore.Swagger.dll
+C:\Users\Hallvard\unimicro-todo\api\bin\Debug\net8.0\Swashbuckle.AspNetCore.SwaggerGen.dll
+C:\Users\Hallvard\unimicro-todo\api\bin\Debug\net8.0\Swashbuckle.AspNetCore.SwaggerUI.dll
+C:\Users\Hallvard\unimicro-todo\api\obj\Debug\net8.0\Unimicro to-do list.csproj.AssemblyReference.cache
+C:\Users\Hallvard\unimicro-todo\api\obj\Debug\net8.0\rpswa.dswa.cache.json
+C:\Users\Hallvard\unimicro-todo\api\obj\Debug\net8.0\Unimicro to-do list.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Hallvard\unimicro-todo\api\obj\Debug\net8.0\Unimicro to-do list.AssemblyInfoInputs.cache
+C:\Users\Hallvard\unimicro-todo\api\obj\Debug\net8.0\Unimicro to-do list.AssemblyInfo.cs
+C:\Users\Hallvard\unimicro-todo\api\obj\Debug\net8.0\Unimicro to-do list.csproj.CoreCompileInputs.cache
+C:\Users\Hallvard\unimicro-todo\api\obj\Debug\net8.0\Unimicro to-do list.MvcApplicationPartsAssemblyInfo.cs
+C:\Users\Hallvard\unimicro-todo\api\obj\Debug\net8.0\Unimicro to-do list.MvcApplicationPartsAssemblyInfo.cache
+C:\Users\Hallvard\unimicro-todo\api\obj\Debug\net8.0\rjimswa.dswa.cache.json
+C:\Users\Hallvard\unimicro-todo\api\obj\Debug\net8.0\rjsmrazor.dswa.cache.json
+C:\Users\Hallvard\unimicro-todo\api\obj\Debug\net8.0\rjsmcshtml.dswa.cache.json
+C:\Users\Hallvard\unimicro-todo\api\obj\Debug\net8.0\scopedcss\bundle\Unimicro to-do list.styles.css
+C:\Users\Hallvard\unimicro-todo\api\obj\Debug\net8.0\staticwebassets.build.json
+C:\Users\Hallvard\unimicro-todo\api\obj\Debug\net8.0\staticwebassets.build.json.cache
+C:\Users\Hallvard\unimicro-todo\api\obj\Debug\net8.0\staticwebassets.development.json
+C:\Users\Hallvard\unimicro-todo\api\obj\Debug\net8.0\staticwebassets.build.endpoints.json
+C:\Users\Hallvard\unimicro-todo\api\obj\Debug\net8.0\Unimicro.C109861C.Up2Date
+C:\Users\Hallvard\unimicro-todo\api\obj\Debug\net8.0\Unimicro to-do list.dll
+C:\Users\Hallvard\unimicro-todo\api\obj\Debug\net8.0\refint\Unimicro to-do list.dll
+C:\Users\Hallvard\unimicro-todo\api\obj\Debug\net8.0\Unimicro to-do list.pdb
+C:\Users\Hallvard\unimicro-todo\api\obj\Debug\net8.0\Unimicro to-do list.genruntimeconfig.cache
+C:\Users\Hallvard\unimicro-todo\api\obj\Debug\net8.0\ref\Unimicro to-do list.dll
