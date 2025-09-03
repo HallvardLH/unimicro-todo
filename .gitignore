@@ -1,18 +1,16 @@
-# .NET build artifacts
+# Ignore build artifacts for .NET
 api/bin/
 api/obj/
-
-# User-specific files
 *.user
 *.suo
 *.cache
 *.log
 
-# Node.js dependencies
+# Ignore Node/Next.js build artifacts
 web/node_modules/
 web/.next/
 web/out/
 
-# OS files
+# OS-specific files
 .DS_Store
 Thumbs.db
