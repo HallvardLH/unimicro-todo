@@ -1,32 +1,31 @@
 using Microsoft.AspNetCore.Mvc;
-using Unimicro_to_do_list.Models;
+using Microsoft.EntityFrameworkCore;
+using Unimicro_to_do_list.Data;
 
 namespace Unimicro_to_do_list.Controllers
 {
-
     [ApiController]
     [Route("api/[controller]")]
     public class TagsController : ControllerBase
     {
-        private static List<string> tags = new List<string>
-    {
-        "learning", "dotnet", "project", "api"
-    };
+        private readonly ApplicationDbContext _context;
 
-        [HttpGet]
-        public IActionResult GetAll()
+        public TagsController(ApplicationDbContext context)
         {
-            return Ok(tags);
+            _context = context;
         }
 
-        [HttpPost]
-        public IActionResult Create([FromBody] string tag)
+        // GET: api/tags
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
         {
-            if (string.IsNullOrWhiteSpace(tag)) return BadRequest("Tag cannot be empty.");
-            if (tags.Contains(tag.ToLower())) return Conflict("Tag already exists.");
+            var tags = await _context.Tasks
+                .SelectMany(t => t.Tags)
+                .Distinct()
+                .OrderBy(t => t)
+                .ToListAsync();
 
-            tags.Add(tag.ToLower());
-            return CreatedAtAction(nameof(GetAll), tag);
+            return Ok(tags);
         }
     }
 }

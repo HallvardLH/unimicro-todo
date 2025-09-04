@@ -3,7 +3,7 @@
 # -------------------------
 api/bin/
 api/obj/
-api/appsettings.Development.json
+appsettings.Development.json
 *.user
 *.suo
 *.cache
