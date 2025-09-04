@@ -16,37 +16,6 @@ namespace Unimicro_to_do_list.Controllers
             _taskService = taskService;
         }
 
-        // GET: api/todo?query=&completed=true|false
-        // [HttpGet]
-        // // FromQuery mean the parameters are read from the URL query parameters
-        // public IActionResult GetAll([FromQuery] string? query, [FromQuery] bool? completed)
-        // {
-        //     IEnumerable<TodoTask> result = todos;
-
-        //     // Ensures a query isn't just whitespace
-        //     if (!string.IsNullOrWhiteSpace(query))
-        //     {
-        //         // Allow search to be both lower and upper case by convertin to lower
-        //         query = query.ToLower();
-        //         // Filters todos, returning those who match either the title or tag
-        //         result = result.Where(t =>
-        //             t.Title.ToLower().Contains(query) ||
-        //             t.Tags.Any(tag => tag.ToLower().Contains(query))
-        //         );
-        //     }
-
-        //     // If the user has included a completed filter, we only return todos matching that bool
-        //     if (completed.HasValue)
-        //     {
-        //         result = result.Where(t => t.Completed == completed.Value);
-        //     }
-
-        //     // Sorts the list so that incomplete todos appear first
-        //     var sorted = result.OrderBy(t => t.Completed).ToList();
-        //     // Return a HTTP 200 OK
-        //     return Ok(sorted);
-        // }
-
         [HttpGet]
         public async Task<ActionResult<List<TodoTask>>> GetTasks(
             [FromQuery] string? searchTerm = null,
