@@ -38,7 +38,13 @@ export function TodoList() {
     const totalCount = todosQuery.data?.length ?? 0;
 
     return (
-        <div className="w-full max-w-xl mx-auto space-y-4">
+        <div className="w-full max-w-xl mx-auto space-y-4 text-center">
+            <h1 className="text-4xl font-bold mb-2">
+                Todo List
+            </h1>
+            <p className="text-sm text-muted-foreground mt-2">
+                {completedCount} / {totalCount} completed
+            </p>
             {/* Search bar */}
             <SearchInput value={searchTerm} onSearchChange={setSearchTerm} />
 
@@ -76,34 +82,27 @@ export function TodoList() {
             </div>
 
             {/* List of todos */}
-            <Card className="p-2 ">
-                <AnimatePresence>
-                    {todosQuery.data?.map(todo => (
-                        <motion.div
+            {/* <Card className="p-2 "> */}
+            <AnimatePresence>
+                {todosQuery.data?.map(todo => (
+                    <motion.div
+                        key={todo.id}
+                        layout
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 10 }}
+                        transition={{ duration: 0.3 }}
+                    >
+                        <TodoItem
                             key={todo.id}
-                            layout
-                            initial={{ opacity: 0, y: -10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: 10 }}
-                            transition={{ duration: 0.3 }}
-                        >
-                            <TodoItem
-                                key={todo.id}
-                                todo={todo}
-                                updateTodo={updateTodo}
-                                deleteTodo={deleteTodo}
-                            />
-                        </motion.div>
-                    ))}
-                </AnimatePresence>
-            </Card>
-
-            {/* Footer */}
-            <Card className="p-4">
-                <p>
-                    {completedCount} / {totalCount} completed
-                </p>
-            </Card>
+                            todo={todo}
+                            updateTodo={updateTodo}
+                            deleteTodo={deleteTodo}
+                        />
+                    </motion.div>
+                ))}
+            </AnimatePresence>
+            {/* </Card> */}
         </div>
     );
 }

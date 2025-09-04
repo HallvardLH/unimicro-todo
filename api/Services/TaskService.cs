@@ -26,12 +26,14 @@ namespace Unimicro_to_do_list.Services
         public async Task<List<TodoTask>> GetAllTasksAsync(string? searchTerm = null, bool? completed = null, int skip = 0, int take = 20)
         {
             // We get all the tasks in the database
-            var query = _context.Tasks.AsQueryable();
+            var query = _context.Tasks
+                .Include(t => t.TaskTags)
+                .AsQueryable();
 
             // Filter by search term, checking both title and tags
             if (!string.IsNullOrWhiteSpace(searchTerm))
             {
-                query = query.Where(t => t.Title.Contains(searchTerm) || t.Tags.Any(tag => tag.Contains(searchTerm)));
+                query = query.Where(t => t.Title.Contains(searchTerm) || t.TaskTags.Any(tt => tt.Tag.Contains(searchTerm)));
             }
 
             // If filter by completion is provided, we filter by that
@@ -42,15 +44,17 @@ namespace Unimicro_to_do_list.Services
 
             // Apply ordering (newest first) and pagination
             return await query.OrderByDescending(t => t.CreatedAt)
-                             .Skip(skip)
-                             .Take(take)
-                             .ToListAsync();
+                .Skip(skip)
+                .Take(take)
+                .ToListAsync();
         }
 
         // Retrieve a single task by ID
         public async Task<TodoTask?> GetTaskAsync(string id)
         {
-            return await _context.Tasks.FirstOrDefaultAsync(t => t.Id == id);
+            return await _context.Tasks
+                .Include(t => t.TaskTags)
+                .FirstOrDefaultAsync(t => t.Id == id);
         }
 
         // Create a new task
@@ -58,10 +62,31 @@ namespace Unimicro_to_do_list.Services
         {
             task.Id = Guid.NewGuid().ToString(); // Creates a unique id
             task.CreatedAt = DateTime.UtcNow; // Sets a timestamp 
-            task.Completed = false; //Initializes task as not completed
+            task.Completed = task.Completed;
 
-            _context.Tasks.Add(task); // Adds the new task to the db context
-            await _context.SaveChangesAsync(); //Save changes to db
+            // Add tags
+            if (task.TaskTags != null && task.TaskTags.Any())
+            {
+                // Remove duplicate tags before saving
+                // This ensures the same tag being added more than once to a task
+                // doesn't cause an error
+                task.TaskTags = task.TaskTags
+                    .GroupBy(t => t.Tag) // Group by tag text
+                    .Select(g => g.First()) // Take first from each group
+                    .ToList();
+
+                foreach (var tag in task.TaskTags)
+                {
+                    tag.TaskId = task.Id; // Set foreign key
+                }
+            }
+
+            _context.Tasks.Add(task);
+
+            //Save changes to db
+            await _context.SaveChangesAsync();
+
+            await _context.Entry(task).Collection(t => t.TaskTags).LoadAsync();
             return task;
         }
 
@@ -69,15 +94,31 @@ namespace Unimicro_to_do_list.Services
         public async Task<TodoTask> UpdateTaskAsync(string id, TodoTask taskUpdate)
         {
             // Finds the task in the database
-            var existingTask = await _context.Tasks.FindAsync(id);
+            var existingTask = await _context.Tasks
+            .Include(t => t.TaskTags)
+            .FirstOrDefaultAsync(t => t.Id == id);
+
             if (existingTask == null)
                 throw new ArgumentException("Task not found");
+
 
             existingTask.Title = taskUpdate.Title;
             existingTask.Completed = taskUpdate.Completed;
             existingTask.DueDate = taskUpdate.DueDate;
-            existingTask.Tags = taskUpdate.Tags;
             existingTask.UpdatedAt = DateTime.UtcNow;
+
+            // Remove old tags
+            // Tags used to be a part of the Task table
+            _context.TaskTags.RemoveRange(existingTask.TaskTags);
+
+            if (taskUpdate.TaskTags != null && taskUpdate.TaskTags.Any())
+            {
+                foreach (var tag in taskUpdate.TaskTags)
+                {
+                    tag.TaskId = existingTask.Id;
+                    _context.TaskTags.Add(tag);
+                }
+            }
 
             await _context.SaveChangesAsync();
             return existingTask;

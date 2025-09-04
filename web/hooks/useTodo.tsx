@@ -28,7 +28,7 @@ const fetchTodos = async (search?: string): Promise<Todo[]> => {
     const url = new URL("http://localhost:5083/api/todo");
 
     if (search && search.trim()) {
-        url.searchParams.append("query", search.trim());
+        url.searchParams.append("searchTerm", search.trim());
     }
 
     const res = await fetch(url.toString());
@@ -44,6 +44,7 @@ const createTodo = async ({ title, tags }: CreateTodoInput): Promise<Todo> => {
         body: JSON.stringify({ title, tags: tags || [], completed: false }),
     });
     if (!res.ok) {
+        console.log(res)
         let message = "Failed to add todo";
         try {
             const errorData = await res.json();
@@ -93,8 +94,6 @@ export const useTodos = (search?: string) => {
         queryFn: () => fetchTodos(search),
         // React Query handles caching, loading and errors automatically
     });
-
-
 
     // Mutations
     const addTodo = useMutation<Todo, Error, CreateTodoInput>({

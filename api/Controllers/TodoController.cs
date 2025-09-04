@@ -16,31 +16,59 @@ namespace Unimicro_to_do_list.Controllers
             _taskService = taskService;
         }
 
+        // In order to comply with the REST contract,
+        // We dont't want to expose the entities directly,
+        // Instead, we return an object with tags as an array of strings
+        public class TodoTaskDto
+        {
+            public string Id { get; set; } = null!;
+            public string Title { get; set; } = null!;
+            public bool Completed { get; set; }
+            public DateTime CreatedAt { get; set; }
+            public DateTime? UpdatedAt { get; set; }
+            public DateTime? DueDate { get; set; }
+            public List<string> Tags { get; set; } = new List<string>();
+        }
+
+        // Helper function to map from EF entity to DTO
+        private TodoTaskDto ToDto(TodoTask task) =>
+            new TodoTaskDto
+            {
+                Id = task.Id,
+                Title = task.Title,
+                Completed = task.Completed,
+                CreatedAt = task.CreatedAt,
+                UpdatedAt = task.UpdatedAt,
+                DueDate = task.DueDate,
+                // TaskTag objects are flattened into string lists 
+                Tags = task.TaskTags.Select(tt => tt.Tag).ToList()
+            };
+
         [HttpGet]
-        public async Task<ActionResult<List<TodoTask>>> GetTasks(
+        public async Task<ActionResult<List<TodoTaskDto>>> GetTasks(
             [FromQuery] string? searchTerm = null,
             [FromQuery] bool? completed = null,
             [FromQuery] int skip = 0,
             [FromQuery] int take = 20)
         {
             var tasks = await _taskService.GetAllTasksAsync(searchTerm, completed, skip, take);
-            return Ok(tasks);
+            return Ok(tasks.Select(ToDto).ToList());
         }
 
         // GET: api/todo/{id}
         // Lets you query for a certain todo by its id
         [HttpGet("{id}")]
-        public async Task<ActionResult<TodoTask>> GetById(string id)
+        public async Task<ActionResult<TodoTaskDto>> GetById(string id)
         {
             var todo = await _taskService.GetTaskAsync(id);
             if (todo == null) return NotFound();
-            return Ok(todo);
+            return Ok(ToDto(todo));
         }
 
         // POST: api/todo
-        // Lest you create a new todo
+        // Lest you create a new task
         [HttpPost]
-        public async Task<ActionResult<TodoTask>> Create([FromBody] TodoInput input)
+        public async Task<ActionResult<TodoTaskDto>> Create([FromBody] TodoInput input)
         {
             // Validation
             if (string.IsNullOrWhiteSpace(input.Title) || input.Title.Length > 140)
@@ -50,21 +78,19 @@ namespace Unimicro_to_do_list.Controllers
 
             var newTodo = new TodoTask
             {
-                Id = Guid.NewGuid().ToString(),
                 Title = input.Title,
                 Completed = input.Completed ?? false,
                 DueDate = input.DueDate,
-                Tags = input.Tags ?? new List<string>(),
-                CreatedAt = DateTime.UtcNow,
+                TaskTags = input.Tags?.Select(tag => new TaskTag { Tag = tag }).ToList() ?? new List<TaskTag>(),
             };
 
             var createdTask = await _taskService.CreateTaskAsync(newTodo);
-            return CreatedAtAction(nameof(GetById), new { id = createdTask.Id }, createdTask);
+            return CreatedAtAction(nameof(GetById), new { id = createdTask.Id }, ToDto(createdTask));
         }
 
         // PUT: api/todo/{id}
         [HttpPut("{id}")]
-        public async Task<ActionResult<TodoTask>> Update(string id, [FromBody] TodoInput input)
+        public async Task<ActionResult<TodoTaskDto>> Update(string id, [FromBody] TodoInput input)
         {
 
             // Validation
@@ -81,11 +107,11 @@ namespace Unimicro_to_do_list.Controllers
                     Title = input.Title,
                     Completed = input.Completed ?? false,
                     DueDate = input.DueDate,
-                    Tags = input.Tags ?? new List<string>()
+                    TaskTags = input.Tags?.Select(tag => new TaskTag { Tag = tag }).ToList() ?? new List<TaskTag>()
                 };
 
                 var result = await _taskService.UpdateTaskAsync(id, updatedTask);
-                return Ok(result);
+                return Ok(ToDto(result));
             }
             catch (ArgumentException)
             {

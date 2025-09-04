@@ -23,6 +23,7 @@ import {
 import { Label } from "./ui/label";
 import { Button } from "./ui/button";
 import { useTodos } from "@/hooks/useTodo";
+import { Tags } from "lucide-react";
 
 interface CreateTodoProps {
     search: string,
@@ -46,8 +47,10 @@ export function CreateTodo({ search }: CreateTodoProps) {
         <Dialog>
             <form>
                 <DialogTrigger asChild>
-                    <Button>
-                        Create new task
+
+                    <Button className="w-full">
+                        <Tags className="w-4 h-4 mr-2" />
+                        Add New Todo
                     </Button>
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-[425px]">
