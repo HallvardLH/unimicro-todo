@@ -6,7 +6,7 @@ namespace Unimicro_to_do_list.Services
 {
     public interface ITaskService
     {
-        Task<List<TodoTask>> GetAllTasksAsync(string? searchTerm = null, bool? completed = null, int skip = 0, int take = 20);
+        Task<(List<TodoTask> Tasks, int TotalCount)> GetAllTasksAsync(string? searchTerm = null, bool? completed = null, int skip = 0, int take = 20);
         Task<TodoTask?> GetTaskAsync(string id);
         Task<TodoTask> CreateTaskAsync(TodoTask task);
         Task<TodoTask> UpdateTaskAsync(string id, TodoTask task);
@@ -23,31 +23,30 @@ namespace Unimicro_to_do_list.Services
             _context = context;
         }
 
-        public async Task<List<TodoTask>> GetAllTasksAsync(string? searchTerm = null, bool? completed = null, int skip = 0, int take = 20)
+        public async Task<(List<TodoTask> Tasks, int TotalCount)> GetAllTasksAsync(
+            string? searchTerm = null,
+            bool? completed = null,
+            int skip = 0,
+            int take = 20)
         {
-            // We get all the tasks in the database
-            var query = _context.Tasks
-                .Include(t => t.TaskTags)
-                .AsQueryable();
+            var query = _context.Tasks.Include(t => t.TaskTags).AsQueryable();
 
-            // Filter by search term, checking both title and tags
             if (!string.IsNullOrWhiteSpace(searchTerm))
-            {
                 query = query.Where(t => t.Title.Contains(searchTerm) || t.TaskTags.Any(tt => tt.Tag.Contains(searchTerm)));
-            }
 
-            // If filter by completion is provided, we filter by that
             if (completed.HasValue)
-            {
                 query = query.Where(t => t.Completed == completed.Value);
-            }
 
-            // Apply ordering (newest first) and pagination
-            return await query.OrderByDescending(t => t.CreatedAt)
-                .Skip(skip)
-                .Take(take)
-                .ToListAsync();
+            var totalCount = await query.CountAsync();
+
+            var tasks = await query.OrderByDescending(t => t.CreatedAt)
+                                   .Skip(skip)
+                                   .Take(take)
+                                   .ToListAsync();
+
+            return (tasks, totalCount);
         }
+
 
         // Retrieve a single task by ID
         public async Task<TodoTask?> GetTaskAsync(string id)

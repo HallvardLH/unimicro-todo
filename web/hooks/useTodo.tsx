@@ -1,6 +1,11 @@
 "use client";
 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+    useMutation,
+    useQueryClient,
+    useInfiniteQuery,
+    InfiniteData,
+} from "@tanstack/react-query";
 
 export type Todo = {
     id: string;
@@ -19,24 +24,33 @@ export type CreateTodoInput = {
     dueDate?: string | null;
 };
 
+export type TodosResponse = {
+    tasks: Todo[];
+    totalCount: number;
+};
+
 // The query functions are defined outside of the hook for readability
 // and to keep the hook body clean. This also makes them easier to test
 // in isolation, and avoids creating new function objects on every render
 
 // Fetch all todos
-const fetchTodos = async (search?: string): Promise<Todo[]> => {
-    const url = new URL("http://localhost:5083/api/todo");
 
-    if (search && search.trim()) {
-        url.searchParams.append("searchTerm", search.trim());
-    }
+const fetchTodos = async (
+    search: string | undefined,
+    page: number = 0,
+    pageSize: number = 20
+): Promise<TodosResponse> => {
+    const url = new URL("http://localhost:5083/api/todo");
+    if (search?.trim()) url.searchParams.append("searchTerm", search.trim());
+    url.searchParams.append("skip", (page * pageSize).toString());
+    url.searchParams.append("take", pageSize.toString());
 
     const res = await fetch(url.toString());
     if (!res.ok) throw new Error("Failed to fetch todos");
+
     return res.json();
 };
 
-// Add a todo
 const createTodo = async ({ title, tags }: CreateTodoInput): Promise<Todo> => {
     const res = await fetch("http://localhost:5083/api/todo", {
         method: "POST",
@@ -44,30 +58,22 @@ const createTodo = async ({ title, tags }: CreateTodoInput): Promise<Todo> => {
         body: JSON.stringify({ title, tags: tags || [], completed: false }),
     });
     if (!res.ok) {
-        console.log(res)
         let message = "Failed to add todo";
         try {
             const errorData = await res.json();
-
             if (errorData.errors) {
-                // ASP.NET ModelState error format
-                message = Object.values(errorData.errors)
-                    .flat()
-                    .join(" ");
+                message = Object.values(errorData.errors).flat().join(" ");
             } else if (errorData.title) {
-                // Sometimes ASP.NET returns a 'title'
                 message = errorData.title;
             }
         } catch {
-            // response wasn't JSON
+            // ignore if not JSON
         }
-
         throw new Error(message);
     }
     return res.json();
 };
 
-// Update a todo
 const updateTodoApi = async (todo: Todo): Promise<Todo> => {
     const res = await fetch(`http://localhost:5083/api/todo/${todo.id}`, {
         method: "PUT",
@@ -78,84 +84,86 @@ const updateTodoApi = async (todo: Todo): Promise<Todo> => {
     return res.json();
 };
 
-// Delete a todo
 const deleteTodoApi = async (id: string): Promise<void> => {
-    const res = await fetch(`http://localhost:5083/api/todo/${id}`, { method: "DELETE" });
+    const res = await fetch(`http://localhost:5083/api/todo/${id}`, {
+        method: "DELETE",
+    });
     if (!res.ok) throw new Error("Failed to delete todo");
 };
 
-export const useTodos = (search?: string) => {
+
+export const useTodos = (search?: string, pageSize: number = 20) => {
     const queryClient = useQueryClient();
 
-    // This is the basic query function
-    // It fetches all todos from the API
-    const todosQuery = useQuery<Todo[]>({
+    const todosQuery = useInfiniteQuery<TodosResponse, Error, TodosCache, [string, string?], number>({
         queryKey: ["todos", search],
-        queryFn: () => fetchTodos(search),
-        // React Query handles caching, loading and errors automatically
+        queryFn: ({ pageParam = 0 }) => fetchTodos(search, pageParam, pageSize),
+        initialPageParam: 0,
+        getNextPageParam: (lastPage, allPages) => {
+            const loaded = allPages.length * pageSize;
+            return loaded < lastPage.totalCount ? allPages.length : undefined;
+        },
     });
 
-    // Mutations
+    // Helper type for cache data
+    type TodosCache = InfiniteData<TodosResponse, number>;
+
     const addTodo = useMutation<Todo, Error, CreateTodoInput>({
         mutationFn: createTodo,
         onSuccess: (newTodo) => {
-            // Optimistically update cached todos by appending the new one
-            queryClient.setQueryData<Todo[]>(["todos", search], (old = []) => [...old, newTodo]);
-            // Refetch to include new todo
-            queryClient.invalidateQueries({ queryKey: ["todos"] });
+            queryClient.setQueryData<TodosCache>(["todos", search], (oldData) => {
+                if (!oldData) return oldData;
+                return {
+                    ...oldData,
+                    pages: oldData.pages.map((page, idx) =>
+                        idx === 0
+                            ? {
+                                ...page,
+                                tasks: [newTodo, ...page.tasks],
+                                totalCount: page.totalCount + 1,
+                            }
+                            : page
+                    ),
+                };
+            });
         },
     });
 
-    const updateTodo = useMutation<Todo, Error, Todo, { previous: Todo[] | undefined }>({
+    const updateTodo = useMutation<Todo, Error, Todo>({
         mutationFn: updateTodoApi,
-        onMutate: async (updatedTodo) => {
-            // Cancelling any outgoing queries, this avoids race conditions
-            await queryClient.cancelQueries({ queryKey: ["todos", search] });
-
-            // We keep the previous value in case of an error
-            const previous = queryClient.getQueryData<Todo[]>(["todos", search]);
-
-            // Optimistically updating the cache with the updated todo
-            queryClient.setQueryData<Todo[]>(["todos", search], (old = []) =>
-                old.map((t) => (t.id === updatedTodo.id ? updatedTodo : t))
-            );
-
-            // The previous value is returned to be used in OnError
-            return { previous };
+        onSuccess: (updatedTodo) => {
+            queryClient.setQueryData<TodosCache>(["todos", search], (oldData) => {
+                if (!oldData) return oldData;
+                return {
+                    ...oldData,
+                    pages: oldData.pages.map((page) => ({
+                        ...page,
+                        tasks: page.tasks.map((t) =>
+                            t.id === updatedTodo.id ? updatedTodo : t
+                        ),
+                    })),
+                };
+            });
         },
-        onError: (_err, _variables, context) => {
-            // Go back to previous data if the update fails
-            if (context?.previous) {
-                queryClient.setQueryData<Todo[]>(["todos", search], context.previous);
-            }
-        },
-        // On success, we refetch to ensure everything is consitent
-        onSettled: () => queryClient.invalidateQueries({ queryKey: ["todos", search] }),
     });
 
-    const deleteTodo = useMutation<void, Error, string, { previous: Todo[] | undefined }>({
+    const deleteTodo = useMutation<void, Error, string>({
         mutationFn: deleteTodoApi,
-        onMutate: async (id) => {
-            // Cancel ongoing queries
-            await queryClient.cancelQueries({ queryKey: ["todos", search] });
-
-            // Save current data
-            const previous = queryClient.getQueryData<Todo[]>(["todos", search]);
-
-            // Optimistically remove todo
-            queryClient.setQueryData<Todo[]>(["todos", search], (old = []) =>
-                old.filter(t => t.id !== id)
-            );
-
-            return { previous };
+        onSuccess: (_data, id) => {
+            queryClient.setQueryData<TodosCache>(["todos", search], (oldData) => {
+                if (!oldData) return oldData;
+                return {
+                    ...oldData,
+                    pages: oldData.pages.map((page) => ({
+                        ...page,
+                        tasks: page.tasks.filter((t) => t.id !== id),
+                        totalCount: page.totalCount - 1,
+                    })),
+                };
+            });
         },
-        onError: (_err, _variables, context) => {
-            if (context?.previous) {
-                queryClient.setQueryData<Todo[]>(["todos", search], context.previous);
-            }
-        },
-        onSettled: () => queryClient.invalidateQueries({ queryKey: ["todos", search] }),
     });
+
 
     return {
         todosQuery,

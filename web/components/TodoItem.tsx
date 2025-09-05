@@ -11,8 +11,8 @@ import { cn } from "@/lib/utils"
 
 interface TodoItemProps {
     todo: Todo;
-    updateTodo: UseMutationResult<Todo, Error, Todo, { previous: Todo[] | undefined }>;
-    deleteTodo: UseMutationResult<void, Error, string, { previous: Todo[] | undefined }>;
+    updateTodo: UseMutationResult<Todo, Error, Todo, unknown>;
+    deleteTodo: UseMutationResult<void, Error, string, unknown>;
 }
 
 export function TodoItem({ todo, updateTodo, deleteTodo }: TodoItemProps) {

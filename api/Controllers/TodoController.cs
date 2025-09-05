@@ -51,8 +51,8 @@ namespace Unimicro_to_do_list.Controllers
             [FromQuery] int skip = 0,
             [FromQuery] int take = 20)
         {
-            var tasks = await _taskService.GetAllTasksAsync(searchTerm, completed, skip, take);
-            return Ok(tasks.Select(ToDto).ToList());
+            var (tasks, totalCount) = await _taskService.GetAllTasksAsync(searchTerm, completed, skip, take);
+            return Ok(new { tasks = tasks.Select(ToDto), totalCount });
         }
 
         // GET: api/todo/{id}
