@@ -36,7 +36,11 @@ export function TodoList() {
         isFetchingNextPage,
     } = todosQuery;
 
-    const allTasks = data?.pages.flatMap((page) => page.tasks) ?? [];
+    const allTasks = data?.pages
+        .flatMap(page => page.tasks)
+        // Ensure no duplicates
+        // Duplicates may occur due to optimistic updating upon creating a new task
+        .filter((todo, index, self) => index === self.findIndex(t => t.id === todo.id)) ?? [];
     const totalCount = data?.pages[0]?.totalCount ?? 0;
     const completedCount = allTasks.filter((t) => t.completed).length;
 

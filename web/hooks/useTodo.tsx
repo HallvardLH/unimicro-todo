@@ -51,11 +51,16 @@ const fetchTodos = async (
     return res.json();
 };
 
-const createTodo = async ({ title, tags }: CreateTodoInput): Promise<Todo> => {
+const createTodo = async ({ title, tags, dueDate }: CreateTodoInput): Promise<Todo> => {
     const res = await fetch("http://localhost:5083/api/todo", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, tags: tags || [], completed: false }),
+        body: JSON.stringify({
+            title,
+            tags: tags || [],
+            completed: false,
+            dueDate: dueDate || null,
+        }),
     });
     if (!res.ok) {
         let message = "Failed to add todo";
@@ -119,7 +124,7 @@ export const useTodos = (search?: string, pageSize: number = 20) => {
                         idx === 0
                             ? {
                                 ...page,
-                                tasks: [newTodo, ...page.tasks],
+                                tasks: [newTodo, ...page.tasks.filter(t => t.id !== newTodo.id)],
                                 totalCount: page.totalCount + 1,
                             }
                             : page

@@ -19,3 +19,10 @@ Den gitte REST-kontrakten fungerer bra for bruk i front-end, der lister (array) 
   }
 }
 ```
+
+
+
+
+### Currently missing
+* Sorting
+* Testing

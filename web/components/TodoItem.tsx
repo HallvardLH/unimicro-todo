@@ -19,57 +19,45 @@ export function TodoItem({ todo, updateTodo, deleteTodo }: TodoItemProps) {
     return (
         <Card className="flex flex-col p-4 gap-2 ">
             {/* Top row */}
-            <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                    <Button
-                        size="icon"
+            <div className="flex items-start justify-between gap-3">
+                <div className="flex gap-2 items-center space-x-2 flex-[1_1_50%]">
+                    <Checkbox
+                        checked={todo.completed}
                         onClick={() =>
                             updateTodo.mutate({ ...todo, completed: !todo.completed })
                         }
-                        className={cn(
-                            "p-5",
-                            "rounded-full flex-shrink-0 mt-1",
-                            todo.completed && "bg-accent text-accent-foreground shadow-soft"
-                        )}
-                    >
-                        {todo.completed ? (
-                            <Check className="w-4 h-4" />
-                        ) : (
-                            <Circle className="w-4 h-4" />
-                        )}
-                    </Button>
+                    />
                     {/* Groups title and tags beneath one another */}
-                    <div className="flex flex-col">
-                        <span className={todo.completed ? "line-through text-gray-400" : ""}>
+                    <div className="flex flex-col text-left">
+                        <span>
                             {todo.title}
                         </span>
-                        {todo.tags && todo.tags.length > 0 && (
-                            <div className="flex flex-wrap gap-2">
-                                {todo.tags.map((tag, idx) => (
-                                    <Badge key={idx}>{tag}</Badge>
-                                ))}
-                            </div>
+                        {todo.dueDate && (
+                            <p className="text-sm text-gray-500">
+                                Due {format(new Date(todo.dueDate), "d MMM")}
+                            </p>
                         )}
+
                     </div>
                 </div>
 
-                <button onClick={() => deleteTodo.mutate(todo.id)}>
-                    <Pencil className="h-4 w-4 text-gray-600 hover:text-gray-900" />
-                </button>
+                <div className="flex flex-[1_1_50%] flex-col gap-2 self-start">
+                    {todo.tags && todo.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-2">
+                            {todo.tags.map((tag, idx) => (
+                                <Badge key={idx}>{tag}</Badge>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
+                <div className="flex-shrink-0">
+                    <button onClick={() => deleteTodo.mutate(todo.id)}>
+                        <Pencil className="h-4 w-4 text-gray-600 hover:text-gray-900" />
+                    </button>
+                </div>
             </div>
 
-            {/* Bottom row */}
-            <div className="flex flex-col gap-2">
-                {/* Tags */}
-
-
-                {/* Dates */}
-                {todo.dueDate && (
-                    <p className="text-sm text-gray-500">
-                        Due: {format(new Date(todo.dueDate), "PPP p")}
-                    </p>
-                )}
-            </div>
         </Card>
     );
 }
