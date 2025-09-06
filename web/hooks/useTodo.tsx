@@ -29,6 +29,12 @@ export type TodosResponse = {
     totalCount: number;
 };
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+if (!API_BASE) {
+    throw new Error("NEXT_PUBLIC_API_URL is not defined in .env.local");
+}
+
+
 // The query functions are defined outside of the hook for readability
 // and to keep the hook body clean. This also makes them easier to test
 // in isolation, and avoids creating new function objects on every render
@@ -40,7 +46,7 @@ const fetchTodos = async (
     page: number = 0,
     pageSize: number = 20
 ): Promise<TodosResponse> => {
-    const url = new URL("http://localhost:5083/api/todo");
+    const url = new URL(`${API_BASE}/api/todo`);
     if (search?.trim()) url.searchParams.append("searchTerm", search.trim());
     url.searchParams.append("skip", (page * pageSize).toString());
     url.searchParams.append("take", pageSize.toString());
@@ -52,7 +58,7 @@ const fetchTodos = async (
 };
 
 const createTodo = async ({ title, tags, dueDate }: CreateTodoInput): Promise<Todo> => {
-    const res = await fetch("http://localhost:5083/api/todo", {
+    const res = await fetch(`${API_BASE}/api/todo`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -80,7 +86,7 @@ const createTodo = async ({ title, tags, dueDate }: CreateTodoInput): Promise<To
 };
 
 const updateTodoApi = async (todo: Todo): Promise<Todo> => {
-    const res = await fetch(`http://localhost:5083/api/todo/${todo.id}`, {
+    const res = await fetch(`${API_BASE}/api/todo/${todo.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(todo),
@@ -90,7 +96,7 @@ const updateTodoApi = async (todo: Todo): Promise<Todo> => {
 };
 
 const deleteTodoApi = async (id: string): Promise<void> => {
-    const res = await fetch(`http://localhost:5083/api/todo/${id}`, {
+    const res = await fetch(`${API_BASE}/api/todo/${id}`, {
         method: "DELETE",
     });
     if (!res.ok) throw new Error("Failed to delete todo");
