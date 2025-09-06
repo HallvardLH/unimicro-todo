@@ -1,8 +1,8 @@
 # -------------------------
 # .NET (api)
 # -------------------------
-api/bin/
-api/obj/
+**/bin/
+**/obj/
 appsettings.Development.json
 *.user
 *.suo

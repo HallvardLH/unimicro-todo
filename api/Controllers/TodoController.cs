@@ -10,10 +10,12 @@ namespace Unimicro_to_do_list.Controllers
     {
 
         private readonly ITaskService _taskService;
+        private readonly ILogger<TodoController> _logger;
 
-        public TodoController(ITaskService taskService)
+        public TodoController(ITaskService taskService, ILogger<TodoController> logger)
         {
             _taskService = taskService;
+            _logger = logger;
         }
 
         // In order to comply with the REST contract,
@@ -51,8 +53,19 @@ namespace Unimicro_to_do_list.Controllers
             [FromQuery] int skip = 0,
             [FromQuery] int take = 20)
         {
-            var (tasks, totalCount) = await _taskService.GetAllTasksAsync(searchTerm, completed, skip, take);
-            return Ok(new { tasks = tasks.Select(ToDto), totalCount });
+            _logger.LogInformation("Fetching tasks. SearchTerm={SearchTerm}, Completed={Completed}, Skip={Skip}, Take={Take}", searchTerm, completed, skip, take);
+
+            try
+            {
+                var (tasks, totalCount) = await _taskService.GetAllTasksAsync(searchTerm, completed, skip, take);
+                _logger.LogInformation("Fetched {Count} tasks", tasks.Count);
+                return Ok(new { tasks = tasks.Select(ToDto), totalCount });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching tasks");
+                return StatusCode(500, "Internal server error");
+            }
         }
 
         // GET: api/todo/{id}
@@ -70,32 +83,45 @@ namespace Unimicro_to_do_list.Controllers
         [HttpPost]
         public async Task<ActionResult<TodoTaskDto>> Create([FromBody] TodoInput input)
         {
+            _logger.LogInformation("Creating new task with name: {Title}", input.Title);
             // Validation
             if (string.IsNullOrWhiteSpace(input.Title) || input.Title.Length > 140)
             {
+                _logger.LogWarning("Invalid task title: {Title}", input.Title);
                 return BadRequest("Title must be 1-140 characters long.");
             }
 
-            var newTodo = new TodoTask
+            try
             {
-                Title = input.Title,
-                Completed = input.Completed ?? false,
-                DueDate = input.DueDate,
-                TaskTags = input.Tags?.Select(tag => new TaskTag { Tag = tag }).ToList() ?? new List<TaskTag>(),
-            };
+                var newTodo = new TodoTask
+                {
+                    Title = input.Title,
+                    Completed = input.Completed ?? false,
+                    DueDate = input.DueDate,
+                    TaskTags = input.Tags?.Select(tag => new TaskTag { Tag = tag }).ToList() ?? new List<TaskTag>(),
+                };
 
-            var createdTask = await _taskService.CreateTaskAsync(newTodo);
-            return CreatedAtAction(nameof(GetById), new { id = createdTask.Id }, ToDto(createdTask));
+                var createdTask = await _taskService.CreateTaskAsync(newTodo);
+                _logger.LogInformation("Task created with ID: {Id}", createdTask.Id);
+                return CreatedAtAction(nameof(GetById), new { id = createdTask.Id }, ToDto(createdTask));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating task with title: {Title}", input.Title);
+                return StatusCode(500, "Internal server error");
+            }
         }
 
         // PUT: api/todo/{id}
         [HttpPut("{id}")]
         public async Task<ActionResult<TodoTaskDto>> Update(string id, [FromBody] TodoInput input)
         {
+            _logger.LogInformation("Updating task {id} with title: {Title}", id, input.Title);
 
             // Validation
             if (string.IsNullOrWhiteSpace(input.Title) || input.Title.Length > 140)
             {
+                _logger.LogWarning("Invalid task title for update: {Title}", input.Title);
                 return BadRequest("Title must be 1-140 characters long.");
             }
 
@@ -111,11 +137,18 @@ namespace Unimicro_to_do_list.Controllers
                 };
 
                 var result = await _taskService.UpdateTaskAsync(id, updatedTask);
+                _logger.LogInformation("Task {Id} updated successfully", id);
                 return Ok(ToDto(result));
             }
             catch (ArgumentException)
             {
+                _logger.LogWarning("Task {Id} not found for update", id);
                 return NotFound();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating task {Id}", id);
+                return StatusCode(500, "Internal server error");
             }
         }
 
@@ -123,11 +156,26 @@ namespace Unimicro_to_do_list.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(string id)
         {
-            var existing = await _taskService.GetTaskAsync(id);
-            if (existing == null) return NotFound();
+            _logger.LogInformation("Deleting task {Id}", id);
 
-            await _taskService.DeleteTaskAsync(id);
-            return NoContent();
+            var existing = await _taskService.GetTaskAsync(id);
+            if (existing == null)
+            {
+                _logger.LogWarning("Task {Id} not found for deletion", id);
+                return NotFound();
+            }
+
+            try
+            {
+                await _taskService.DeleteTaskAsync(id);
+                _logger.LogInformation("Task {Id} deleted successfully", id);
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting task {Id}", id);
+                return StatusCode(500, "Internal server error");
+            }
         }
     }
 }
