@@ -161,18 +161,17 @@ export function EditTodo({ todo, updateTodo, deleteTodo }: EditTodoProps) {
 
                     <DialogFooter>
                         <DialogClose asChild>
-                            <button type="button" className="px-4 py-2 rounded border">
+                            <Button variant={"outline"} type="button" >
                                 Cancel
-                            </button>
+                            </Button>
                         </DialogClose>
-                        <button
+                        <Button
                             type="button"
                             onClick={handleUpdate}
                             disabled={updateTodo.isPending}
-                            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
                         >
                             {updateTodo.isPending ? "Updating..." : "Update task"}
-                        </button>
+                        </Button>
                     </DialogFooter>
                 </DialogContent>
             </form>

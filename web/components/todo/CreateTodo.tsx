@@ -13,7 +13,7 @@ import {
 import { Label } from "../ui/label";
 import { Button } from "../ui/button";
 import { useTodos } from "@/hooks/useTodo";
-import { Tags, X } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import { Badge } from "../ui/badge";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -64,7 +64,7 @@ export function CreateTodo({ search }: CreateTodoProps) {
             <form onSubmit={(e) => { e.preventDefault(); handleAdd(); }}>
                 <DialogTrigger asChild>
                     <Button className="w-full">
-                        <Tags className="w-4 h-4 mr-2" />
+                        <Plus className="w-4 h-4 mr-2" />
                         Add New Todo
                     </Button>
                 </DialogTrigger>
@@ -149,18 +149,17 @@ export function CreateTodo({ search }: CreateTodoProps) {
                             </p>
                         )}
                         <DialogClose asChild>
-                            <button type="button" className="px-4 py-2 rounded border">
+                            <Button variant={"outline"} type="button">
                                 Cancel
-                            </button>
+                            </Button>
                         </DialogClose>
-                        <button
+                        <Button
                             type="button"
                             onClick={handleAdd}
                             disabled={addTodo.isPending}
-                            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
                         >
                             {addTodo.isPending ? "Adding..." : "Add task"}
-                        </button>
+                        </Button>
                     </DialogFooter>
                 </DialogContent>
             </form>
