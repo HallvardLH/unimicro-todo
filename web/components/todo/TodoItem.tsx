@@ -6,14 +6,28 @@ import { format } from "date-fns";
 import { UseMutationResult } from "@tanstack/react-query";
 import { EditTodo } from "./EditTodo";
 import { motion } from "framer-motion";
+
 interface TodoItemProps {
+    /** The todo object to display */
     todo: Todo;
+    /** Mutation for updating a todo */
     updateTodo: UseMutationResult<Todo, Error, Todo, unknown>;
+    /** Mutation for deleting a todo */
     deleteTodo: UseMutationResult<void, Error, string, unknown>;
 }
 
+/**
+ * TodoItem component
+ * 
+ * Renders a single todo with its title, tags, due date, and actions.
+ * Includes:
+ * - Checkbox to toggle completion status
+ * - Badge display for tags
+ * - Edit and delete actions through EditTodo component
+ * 
+ * Uses Framer Motion to animate the checkbox scale on click and completion.
+ */
 export function TodoItem({ todo, updateTodo, deleteTodo }: TodoItemProps) {
-
     return (
         <Card className="flex flex-col justify-center p-4 gap-2 min-h-18 ">
             {/* Top row */}
@@ -62,14 +76,8 @@ export function TodoItem({ todo, updateTodo, deleteTodo }: TodoItemProps) {
                         updateTodo={updateTodo}
                         deleteTodo={deleteTodo}
                     />
-                    {/* {todo.completed && (
-                        <button onClick={() => deleteTodo.mutate(todo.id)}>
-                            <Trash className="h-4 w-4 text-gray-600 hover:text-gray-900" />
-                        </button>
-                    )} */}
                 </div>
             </div>
-
         </Card>
     );
 }

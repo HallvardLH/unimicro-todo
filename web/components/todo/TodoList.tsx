@@ -1,43 +1,58 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { useTodos, Todo } from "../../hooks/useTodo";
 import { SearchInput } from "./SearchInput";
-import { TodoItem } from "./TodoItem";
 import { CreateTodo } from "./CreateTodo";
 import { TodoHeader } from "./TodoHeader";
+import { OrderSelect } from "./OrderSelect";
+import { Spinner } from '@/components/ui/shadcn-io/spinner';
+import { TodoItemsList } from "./TodoItemsList";
+import { InfiniteScrollSentinel } from "./InfiniteScrollSentinel";
+
+/**
+ * TodoList component
+ * 
+ * Displays a searchable, sortable, and filterable list of todos with infinite scrolling.
+ * Uses the useTodos hook for fetching, updating, and deleting todos.
+ */
 
 export function TodoList() {
+    /** Current search input value */
     const [searchTerm, setSearchTerm] = useState("");
+    /** Debounced search term used for querying */
     const [debouncedSearch, setDebouncedSearch] = useState("");
 
+    /** State for filtering todos */
     const [filters, setFilters] = useState({
         completed: false,
         incomplete: false,
         overdue: false,
-    })
+    });
 
+    /** Sorting state: which field to sort by */
     const [orderBy, setOrderBy] = useState<"CreatedAt" | "DueDate" | "Title">("CreatedAt");
+    /** Sorting order: ascending or descending */
     const [ascending, setAscending] = useState<boolean>(false);
 
+    /** Number of todos per page for pagination */
     const pageSize = 20;
 
+    /**
+     * Toggle a filter on/off.
+     * Ensures only one of completed/incomplete is active at a time.
+     * @param filter The filter to toggle: "completed" | "incomplete" | "overdue"
+     */
     const toggleFilter = (filter: "completed" | "incomplete" | "overdue") => {
         setFilters(prev => {
-            if (filter === "completed") {
-                return { ...prev, completed: !prev.completed, incomplete: false }
-            }
-            if (filter === "incomplete") {
-                return { ...prev, incomplete: !prev.incomplete, completed: false }
-            }
-            if (filter === "overdue") {
-                return { ...prev, overdue: !prev.overdue }
-            }
-            return prev
-        })
-    }
+            if (filter === "completed") return { ...prev, completed: !prev.completed, incomplete: false };
+            if (filter === "incomplete") return { ...prev, incomplete: !prev.incomplete, completed: false };
+            if (filter === "overdue") return { ...prev, overdue: !prev.overdue };
+            return prev;
+        });
+    };
 
+    /** Convert filter state to query parameters */
     const completedFilter =
         filters.completed && !filters.incomplete
             ? true
@@ -47,7 +62,7 @@ export function TodoList() {
 
     const overdueFilter = filters.overdue ? true : undefined;
 
-    // debounce search term
+    // debounce search term to reduce API calls and make UX a bit better
     useEffect(() => {
         const handler = setTimeout(() => setDebouncedSearch(searchTerm), 300);
         return () => clearTimeout(handler);
@@ -72,6 +87,7 @@ export function TodoList() {
         isFetchingNextPage,
     } = todosQuery;
 
+    /** Flatten paginated results and remove duplicates */
     const allTasks: Todo[] = data?.pages
         .flatMap(page => page.tasks)
         .filter((todo, index, self) => index === self.findIndex(t => t.id === todo.id)) ?? [];
@@ -79,8 +95,10 @@ export function TodoList() {
     const totalCount = data?.pages[0]?.totalCount ?? 0;
     const completedCount = data?.pages[0]?.completedCount ?? 0;
 
+    /** Ref for infinite scroll sentinel */
     const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
+    /** Infinite scroll observer */
     useEffect(() => {
         if (!hasNextPage || isFetchingNextPage) return;
         const observer = new IntersectionObserver((entries) => {
@@ -92,14 +110,13 @@ export function TodoList() {
         return () => observer.disconnect();
     }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
-    if (isLoading) return <p>Loading...</p>;
+    if (isLoading) return <Spinner />;
     if (isError) return <p>Error: {(error as Error).message}</p>;
 
     return (
         <div className="max-w-xl w-xl mx-auto space-y-4 text-center">
             <h1 className="text-5xl font-bold mb-2">Todo List</h1>
 
-            {/* Stats */}
             <TodoHeader
                 totalCount={totalCount}
                 completedCount={completedCount}
@@ -112,53 +129,21 @@ export function TodoList() {
                 }}
             />
 
-            {/* Search bar */}
             <SearchInput value={searchTerm} onSearchChange={setSearchTerm} />
 
-            {/* Sort options */}
-            <div className="flex justify-center gap-4 my-2">
-                <select value={orderBy} onChange={e => setOrderBy(e.target.value as any)}>
-                    <option value="CreatedAt">Created At</option>
-                    <option value="DueDate">Due Date</option>
-                    <option value="Title">Title</option>
-                </select>
-                <button onClick={() => setAscending(prev => !prev)}>
-                    {ascending ? "Ascending" : "Descending"}
-                </button>
-            </div>
-
             <div className="flex justify-between">
-                <span className="text-2xl font-bold">To be done</span>
+                <OrderSelect
+                    value={orderBy}
+                    onSetOrderBy={setOrderBy}
+                    ascending={ascending}
+                    onSetAscending={setAscending}
+                />
                 <CreateTodo search={debouncedSearch} />
             </div>
 
-            {/* Todo list */}
-            <AnimatePresence>
-                {allTasks.map((todo) => (
-                    <motion.div
-                        key={todo.id}
-                        layout
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 10 }}
-                        transition={{ duration: 0.3 }}
-                    >
-                        <TodoItem todo={todo} updateTodo={updateTodo} deleteTodo={deleteTodo} />
-                    </motion.div>
-                ))}
-            </AnimatePresence>
+            <TodoItemsList todos={allTasks} updateTodo={updateTodo} deleteTodo={deleteTodo} />
 
-            {/* Infinite scroll sentinel */}
-            <div
-                ref={loadMoreRef}
-                className="h-10 flex justify-center items-center text-sm text-muted-foreground"
-            >
-                {isFetchingNextPage
-                    ? "Loading more..."
-                    : hasNextPage
-                        ? "Scroll to load more"
-                        : "No more todos"}
-            </div>
+            <InfiniteScrollSentinel refCallback={loadMoreRef} isFetching={isFetchingNextPage} hasNextPage={hasNextPage} />
         </div>
     );
 }

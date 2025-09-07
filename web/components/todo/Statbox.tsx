@@ -2,12 +2,18 @@ import { Checkbox } from "../ui/checkbox";
 import { BookCheck, CircleCheck, Clock, BookAlert } from "lucide-react";
 
 interface StatBoxProps {
-    variant: "total" | "completed" | "incomplete" | "overdue",
-    value: string | number,
-    label: string,
-    onClick?: () => void,
-    isActive: boolean,
-    showCheckbox?: boolean,
+    /** Type of statistic to display, determines icon and background */
+    variant: "total" | "completed" | "incomplete" | "overdue";
+    /** The numeric or string value to display */
+    value: string | number;
+    /** Label describing the stat box */
+    label: string;
+    /** Optional click handler for interactivity */
+    onClick?: () => void;
+    /** Determines if the checkbox is active (checked) */
+    isActive: boolean;
+    /** Whether to show the checkbox. Default is true */
+    showCheckbox?: boolean;
 }
 
 const icons = {
@@ -24,6 +30,18 @@ const backgrounds = {
     overdue: "#FFDDC9",
 }
 
+/**
+ * StatBox component
+ * 
+ * Displays a small statistic card with:
+ * - An icon representing the type of stat
+ * - Label describing the stat
+ * - Numeric or string value
+ * - Optional checkbox indicating filter state
+ * 
+ * Background color and icon change based on the variant.
+ * The card can be clickable if onClick is provided.
+ */
 export function StatBox({ variant, value, label, onClick, isActive, showCheckbox = true }: StatBoxProps) {
     const Icon = icons[variant];
     const background = backgrounds[variant];
