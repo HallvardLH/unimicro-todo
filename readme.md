@@ -10,16 +10,60 @@ Prosjektet krever en database. Jeg har valgt å bruker Docker, og kjører en SQL
 Lag en kopi av kodebasen:
 ```sh
 git clone https://github.com/hallvardlh/unimicro-todo.git
-cd todo-crud-app
+cd unimicro-todo
 ```
 
-Backend setup
+### Backend setup
 ```sh
 cd backend
 dotnet restore
 dotnet ef database update
 dotnet run
 ```
+
+Merk: dotnet ef database update forutsetter at dotnet-ef er installert. Hvis ikke, installer med:
+
+```sh
+dotnet tool install --global dotnet-ef
+```
+
+For å sette opp database
+
+Laster ned og kjører SQL server i Docker
+```bash
+docker run -d --name todoapp-sql -e ACCEPT_EULA=Y -e SA_PASSWORD=TestPassword123! -p 1433:1433 mcr.microsoft.com/mssql/server:2022-latest
+```
+Viktig: Endre SA-passordet i produksjon.
+
+Sjekk om Docker server kjører
+```bash
+docker ps
+```
+
+I unimicro-todo/api, legg til fil: `appsettings.Development.json`
+```json
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=localhost,1433;Database=TodoApp;User Id=sa;Password=TestPassword123!;TrustServerCertificate=true;"
+  }
+}
+```
+
+Dette forteller backend hvor databasen kjører og hvilke credentials som skal brukes.
+
+### Front-end kjør
+```bash
+cd web
+npm install 
+npm run dev
+```
+
+Merk: I web folder legg til en `.env.local` file med: 
+```bash
+NEXT_PUBLIC_API_URL=http://localhost:5083
+```
+
+Dette lar front-end vite hvor back-end API-en er tilgjengelig.
 
 ## Stack
 * Front-end: React, TypeScript, Tailwind CSS, ShadCN UI, Tanstack Query
