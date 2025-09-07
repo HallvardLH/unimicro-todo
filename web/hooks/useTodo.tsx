@@ -27,6 +27,8 @@ export type CreateTodoInput = {
 export type TodosResponse = {
     tasks: Todo[];
     totalCount: number;
+    completedCount: number;
+    returnedCount: number;
 };
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
@@ -44,12 +46,26 @@ if (!API_BASE) {
 const fetchTodos = async (
     search: string | undefined,
     page: number = 0,
-    pageSize: number = 20
+    pageSize: number = 20,
+    completed?: boolean | null,
+    overdue?: boolean | null,
+    orderBy: string = "CreatedAt",
+    ascending: boolean = false
 ): Promise<TodosResponse> => {
     const url = new URL(`${API_BASE}/api/todo`);
     if (search?.trim()) url.searchParams.append("searchTerm", search.trim());
     url.searchParams.append("skip", (page * pageSize).toString());
     url.searchParams.append("take", pageSize.toString());
+    url.searchParams.append("orderBy", orderBy);
+    url.searchParams.append("ascending", ascending.toString());
+
+    if (completed !== null && completed !== undefined) {
+        url.searchParams.append("completed", completed.toString());
+    }
+
+    if (overdue !== null && overdue !== undefined) {
+        url.searchParams.append("overdue", overdue.toString());
+    }
 
     const res = await fetch(url.toString());
     if (!res.ok) throw new Error("Failed to fetch todos");
@@ -103,26 +119,36 @@ const deleteTodoApi = async (id: string): Promise<void> => {
 };
 
 
-export const useTodos = (search?: string, pageSize: number = 20) => {
+export const useTodos = (
+    search?: string,
+    pageSize: number = 20,
+    completed?: boolean | null,
+    overdue?: boolean | null,
+    orderBy: string = "CreatedAt",
+    ascending: boolean = false
+) => {
     const queryClient = useQueryClient();
-
-    const todosQuery = useInfiniteQuery<TodosResponse, Error, TodosCache, [string, string?], number>({
-        queryKey: ["todos", search],
-        queryFn: ({ pageParam = 0 }) => fetchTodos(search, pageParam, pageSize),
-        initialPageParam: 0,
-        getNextPageParam: (lastPage, allPages) => {
-            const loaded = allPages.length * pageSize;
-            return loaded < lastPage.totalCount ? allPages.length : undefined;
-        },
-    });
+    const queryKey = ["todos", search, completed ?? undefined, overdue ?? undefined, orderBy ?? undefined, ascending ?? undefined];
 
     // Helper type for cache data
     type TodosCache = InfiniteData<TodosResponse, number>;
 
+    const todosQuery = useInfiniteQuery<TodosResponse, Error, TodosCache, [string, string?, boolean?, boolean?, string?, boolean?], number>({
+        queryKey: ["todos", search, completed ?? undefined, overdue ?? undefined, orderBy ?? undefined, ascending ?? undefined],
+        queryFn: ({ pageParam = 0 }) => fetchTodos(search, pageParam, pageSize, completed, overdue, orderBy, ascending),
+        initialPageParam: 0,
+        getNextPageParam: (lastPage, allPages) => {
+            return lastPage.tasks.length === pageSize ? allPages.length : undefined;
+        },
+    });
+
+    const invalidateTodos = () =>
+        queryClient.invalidateQueries({ queryKey });
+
     const addTodo = useMutation<Todo, Error, CreateTodoInput>({
         mutationFn: createTodo,
         onSuccess: (newTodo) => {
-            queryClient.setQueryData<TodosCache>(["todos", search], (oldData) => {
+            queryClient.setQueryData<TodosCache>(queryKey, (oldData) => {
                 if (!oldData) return oldData;
                 return {
                     ...oldData,
@@ -130,51 +156,29 @@ export const useTodos = (search?: string, pageSize: number = 20) => {
                         idx === 0
                             ? {
                                 ...page,
-                                tasks: [newTodo, ...page.tasks.filter(t => t.id !== newTodo.id)],
+                                tasks: [newTodo, ...page.tasks],
+                                returnedCount: page.returnedCount + 1,
                                 totalCount: page.totalCount + 1,
                             }
                             : page
                     ),
                 };
             });
+            //refetch to stay in sync
+            queryClient.invalidateQueries({ queryKey });
         },
     });
 
+
     const updateTodo = useMutation<Todo, Error, Todo>({
         mutationFn: updateTodoApi,
-        onSuccess: (updatedTodo) => {
-            queryClient.setQueryData<TodosCache>(["todos", search], (oldData) => {
-                if (!oldData) return oldData;
-                return {
-                    ...oldData,
-                    pages: oldData.pages.map((page) => ({
-                        ...page,
-                        tasks: page.tasks.map((t) =>
-                            t.id === updatedTodo.id ? updatedTodo : t
-                        ),
-                    })),
-                };
-            });
-        },
+        onSuccess: invalidateTodos,
     });
 
     const deleteTodo = useMutation<void, Error, string>({
         mutationFn: deleteTodoApi,
-        onSuccess: (_data, id) => {
-            queryClient.setQueryData<TodosCache>(["todos", search], (oldData) => {
-                if (!oldData) return oldData;
-                return {
-                    ...oldData,
-                    pages: oldData.pages.map((page) => ({
-                        ...page,
-                        tasks: page.tasks.filter((t) => t.id !== id),
-                        totalCount: page.totalCount - 1,
-                    })),
-                };
-            });
-        },
+        onSuccess: invalidateTodos,
     });
-
 
     return {
         todosQuery,

@@ -2,16 +2,22 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useTodos } from "../hooks/useTodo";
+import { useTodos, Todo } from "../hooks/useTodo";
 import { SearchInput } from "./SearchInput";
 import { TodoItem } from "./TodoItem";
 import { CreateTodo } from "./CreateTodo";
+import { StatBox } from "./Statbox";
 
 export function TodoList() {
-    const [newTitle, setNewTitle] = useState("");
-    const [newTags, setNewTags] = useState("");
     const [searchTerm, setSearchTerm] = useState("");
     const [debouncedSearch, setDebouncedSearch] = useState("");
+
+    const [filterCompleted, setFilterCompleted] = useState<boolean>(false);
+    const [filterIncomplete, setFilterIncomplete] = useState<boolean>(false);
+    const [filterOverdue, setFilterOverdue] = useState<boolean>(false);
+
+    const [orderBy, setOrderBy] = useState<"CreatedAt" | "DueDate" | "Title">("CreatedAt");
+    const [ascending, setAscending] = useState<boolean>(false);
 
     const pageSize = 20;
 
@@ -21,9 +27,22 @@ export function TodoList() {
         return () => clearTimeout(handler);
     }, [searchTerm]);
 
-    const { todosQuery, addTodo, updateTodo, deleteTodo } = useTodos(
+    const completedFilter =
+        filterCompleted && !filterIncomplete
+            ? true
+            : !filterCompleted && filterIncomplete
+                ? false
+                : undefined;
+
+    const overdueFilter = filterOverdue ? true : undefined;
+
+    const { todosQuery, updateTodo, deleteTodo } = useTodos(
         debouncedSearch,
-        pageSize
+        pageSize,
+        completedFilter,
+        overdueFilter,
+        orderBy,
+        ascending
     );
 
     const {
@@ -36,15 +55,13 @@ export function TodoList() {
         isFetchingNextPage,
     } = todosQuery;
 
-    const allTasks = data?.pages
+    const allTasks: Todo[] = data?.pages
         .flatMap(page => page.tasks)
-        // Ensure no duplicates
-        // Duplicates may occur due to optimistic updating upon creating a new task
         .filter((todo, index, self) => index === self.findIndex(t => t.id === todo.id)) ?? [];
-    const totalCount = data?.pages[0]?.totalCount ?? 0;
-    const completedCount = allTasks.filter((t) => t.completed).length;
 
-    // infinite scroll observer
+    const totalCount = data?.pages[0]?.totalCount ?? 0;
+    const completedCount = data?.pages[0]?.completedCount ?? 0;
+
     const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
@@ -58,62 +75,57 @@ export function TodoList() {
         return () => observer.disconnect();
     }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
-    const handleAdd = () => {
-        const tagsArray = newTags
-            .split(",")
-            .map((t) => t.trim())
-            .filter((t) => t.length > 0);
-
-        addTodo.mutate({ title: newTitle, tags: tagsArray });
-        setNewTitle("");
-        setNewTags("");
-    };
-
     if (isLoading) return <p>Loading...</p>;
     if (isError) return <p>Error: {(error as Error).message}</p>;
 
     return (
-        <div className="w-full max-w-xl mx-auto space-y-4 text-center">
+        <div className="max-w-xl w-xl mx-auto space-y-4 text-center">
             <h1 className="text-4xl font-bold mb-2">Todo List</h1>
-            <p className="text-sm text-muted-foreground mt-2">
-                {completedCount} / {totalCount} completed
-            </p>
+
+            {/* Stats */}
+            <div className="grid grid-cols-2 gap-4">
+                <StatBox variant="total" label="Total tasks" value={totalCount} isActive={true} showCheckbox={false} />
+                <StatBox
+                    variant="completed"
+                    label="Completed"
+                    value={completedCount}
+                    onClick={() => setFilterCompleted(prev => !prev)}
+                    isActive={filterCompleted}
+                />
+                <StatBox
+                    variant="incomplete"
+                    label="Incomplete"
+                    value={totalCount - completedCount}
+                    onClick={() => setFilterIncomplete(prev => !prev)}
+                    isActive={filterIncomplete}
+                />
+                <StatBox
+                    variant="overdue"
+                    label="Overdue"
+                    value={allTasks.filter(t => !t.completed && t.dueDate && new Date(t.dueDate) < new Date()).length}
+                    onClick={() => setFilterOverdue(prev => !prev)}
+                    isActive={filterOverdue}
+                />
+            </div>
 
             {/* Search bar */}
             <SearchInput value={searchTerm} onSearchChange={setSearchTerm} />
 
-            <CreateTodo search={debouncedSearch} />
+            {/* Sort options */}
+            <div className="flex justify-center gap-4 my-2">
+                <select value={orderBy} onChange={e => setOrderBy(e.target.value as any)}>
+                    <option value="CreatedAt">Created At</option>
+                    <option value="DueDate">Due Date</option>
+                    <option value="Title">Title</option>
+                </select>
+                <button onClick={() => setAscending(prev => !prev)}>
+                    {ascending ? "Ascending" : "Descending"}
+                </button>
+            </div>
 
-            {/* Input for adding new todos */}
-            <div className="flex flex-col space-y-2">
-                <div className="flex space-x-2">
-                    <input
-                        type="text"
-                        placeholder="New todo"
-                        value={newTitle}
-                        onChange={(e) => setNewTitle(e.target.value)}
-                        className="flex-1 border rounded px-3 py-2 focus:outline-none focus:ring"
-                    />
-                    <input
-                        type="text"
-                        placeholder="Tags (comma-separated)"
-                        value={newTags}
-                        onChange={(e) => setNewTags(e.target.value)}
-                        className="flex-1 border rounded px-3 py-2 focus:outline-none focus:ring"
-                    />
-                    <button
-                        onClick={handleAdd}
-                        disabled={addTodo.isPending}
-                        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
-                    >
-                        {addTodo.isPending ? "Adding..." : "Add"}
-                    </button>
-                </div>
-                {addTodo.isError && (
-                    <p className="text-red-500 text-sm">
-                        {addTodo.error.message || "Failed to add todo."}
-                    </p>
-                )}
+            <div className="flex justify-between">
+                <span>To be done</span>
+                <CreateTodo search={debouncedSearch} />
             </div>
 
             {/* Todo list */}
@@ -127,12 +139,7 @@ export function TodoList() {
                         exit={{ opacity: 0, y: 10 }}
                         transition={{ duration: 0.3 }}
                     >
-                        <TodoItem
-                            key={todo.id}
-                            todo={todo}
-                            updateTodo={updateTodo}
-                            deleteTodo={deleteTodo}
-                        />
+                        <TodoItem todo={todo} updateTodo={updateTodo} deleteTodo={deleteTodo} />
                     </motion.div>
                 ))}
             </AnimatePresence>

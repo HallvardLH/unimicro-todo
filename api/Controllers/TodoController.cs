@@ -50,16 +50,30 @@ namespace Unimicro_to_do_list.Controllers
         public async Task<ActionResult<List<TodoTaskDto>>> GetTasks(
             [FromQuery] string? searchTerm = null,
             [FromQuery] bool? completed = null,
+            [FromQuery] bool? overdue = null,
             [FromQuery] int skip = 0,
-            [FromQuery] int take = 20)
+            [FromQuery] int take = 20,
+            [FromQuery] string? orderBy = "CreatedAt",
+            [FromQuery] bool ascending = false)
         {
-            _logger.LogInformation("Fetching tasks. SearchTerm={SearchTerm}, Completed={Completed}, Skip={Skip}, Take={Take}", searchTerm, completed, skip, take);
+            _logger.LogInformation(
+                "Fetching tasks. SearchTerm={SearchTerm}, Completed={Completed}, Overdue={Overdue}, Skip={Skip}, Take={Take}, OrderBy={OrderBy}, Ascending={Ascending}",
+                searchTerm, completed, overdue, skip, take, orderBy, ascending);
 
             try
             {
-                var (tasks, totalCount) = await _taskService.GetAllTasksAsync(searchTerm, completed, skip, take);
+                var (tasks, totalCount, completedCount) = await _taskService.GetAllTasksAsync(
+                    searchTerm, completed, overdue, skip, take, orderBy, ascending);
+
                 _logger.LogInformation("Fetched {Count} tasks", tasks.Count);
-                return Ok(new { tasks = tasks.Select(ToDto), totalCount });
+
+                return Ok(new
+                {
+                    tasks = tasks.Select(ToDto),
+                    totalCount,
+                    completedCount,
+                    returnedCount = tasks.Count
+                });
             }
             catch (Exception ex)
             {

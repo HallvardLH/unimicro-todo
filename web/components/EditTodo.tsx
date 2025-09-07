@@ -1,6 +1,3 @@
-'use client'
-
-import { useState } from "react";
 import {
     Dialog,
     DialogClose,
@@ -10,15 +7,20 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "./ui/dialog";
+import { useState, useEffect } from "react";
+import { Pencil } from "lucide-react";
+import { Todo } from "@/hooks/useTodo";
+import { UseMutationResult } from "@tanstack/react-query";
 import { Label } from "./ui/label";
 import { Button } from "./ui/button";
-import { useTodos } from "@/hooks/useTodo";
-import { Tags, X } from "lucide-react";
 import { Badge } from "./ui/badge";
+import { X, Trash } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-interface CreateTodoProps {
-    search: string,
+interface EditTodoProps {
+    todo: Todo;
+    updateTodo: UseMutationResult<Todo, Error, Todo, unknown>;
+    deleteTodo: UseMutationResult<void, Error, string, unknown>;
 }
 
 interface Tag {
@@ -26,12 +28,30 @@ interface Tag {
     name: string;
 }
 
-export function CreateTodo({ search }: CreateTodoProps) {
-    const [newTitle, setNewTitle] = useState("");
+export function EditTodo({ todo, updateTodo, deleteTodo }: EditTodoProps) {
+    const [newTitle, setNewTitle] = useState(todo.title);
     const [newTag, setNewTag] = useState("");
     const [tagList, setTagList] = useState<Tag[]>([]);
-    const [dueDate, setDueDate] = useState<string | null>(null);
+    const [dueDate, setDueDate] = useState<string | null>(todo.dueDate ? todo.dueDate : null);
     const [open, setOpen] = useState(false);
+
+    // todo.tags is a simply array of strings,
+    // we need to store tagList as an array of Tag objects
+    useEffect(() => {
+        if (todo.tags && todo.tags.length > 0) {
+            const initialTags = todo.tags.map(tag => {
+                // If tag is already an object with id, just return it
+                if (typeof tag === "object" && "id" in tag) return tag as Tag;
+                // If tag is a string, convert it to object
+                return { id: crypto.randomUUID(), name: tag } as Tag;
+            });
+            setTagList(initialTags);
+        }
+    }, [todo.tags]);
+
+    const removeTag = (id: string) => {
+        setTagList(tagList.filter(tag => tag.id !== id));
+    };
 
     const addTag = (name: string) => {
         if (!name) return;
@@ -40,43 +60,38 @@ export function CreateTodo({ search }: CreateTodoProps) {
         setNewTag("");
     };
 
-    const removeTag = (id: string) => {
-        setTagList(tagList.filter(tag => tag.id !== id));
-    };
-
-    const { addTodo } = useTodos(search);
-
-    const handleAdd = async () => {
-        console.log(dueDate)
-        if (!newTitle) return;
-        await addTodo.mutateAsync({
+    const handleUpdate = async () => {
+        await updateTodo.mutateAsync({
             title: newTitle,
             tags: tagList.map(tag => tag.name),
             dueDate: dueDate ? new Date(dueDate).toISOString() : null,
+            completed: todo.completed,
+            createdAt: todo.createdAt,
+            id: todo.id,
         });
         setNewTitle("");
         setTagList([]);
         setDueDate(null);
         setOpen(false);
-    };
+    }
+
     return (
         <Dialog open={open} onOpenChange={setOpen}>
-            <form onSubmit={(e) => { e.preventDefault(); handleAdd(); }}>
+            <form onSubmit={(e) => { e.preventDefault(); }}>
                 <DialogTrigger asChild>
-                    <Button className="w-full">
-                        <Tags className="w-4 h-4 mr-2" />
-                        Add New Todo
-                    </Button>
+                    <button >
+                        <Pencil className="h-4 w-4 text-gray-600 hover:text-gray-900" />
+                    </button>
                 </DialogTrigger>
                 <DialogContent aria-describedby="" className="sm:max-w-[425px]">
                     <DialogHeader>
-                        <DialogTitle>Add task</DialogTitle>
+                        <DialogTitle>Edit task</DialogTitle>
                     </DialogHeader>
 
                     <div className="grid gap-6">
                         {/* Task name */}
                         <div className="grid gap-3">
-                            <Label htmlFor="name">Name</Label>
+                            <Label htmlFor="name">Edit name</Label>
                             <input
                                 id="name"
                                 name="name"
@@ -89,7 +104,7 @@ export function CreateTodo({ search }: CreateTodoProps) {
                         </div>
 
                         <div className="grid gap-3">
-                            <Label htmlFor="tags">Add tags</Label>
+                            <Label htmlFor="tags">Add or remove tags</Label>
                             <div className="flex gap-4 items-center">
                                 <input
                                     id="tags"
@@ -130,7 +145,7 @@ export function CreateTodo({ search }: CreateTodoProps) {
 
                         {/* Due date */}
                         <div className="grid gap-3">
-                            <Label htmlFor="dueDate">Due Date</Label>
+                            <Label htmlFor="dueDate">Change or add due date</Label>
                             <input
                                 type="datetime-local"
                                 id="dueDate"
@@ -140,14 +155,11 @@ export function CreateTodo({ search }: CreateTodoProps) {
                                 className="flex-1 border rounded px-3 py-2 focus:outline-none focus:ring"
                             />
                         </div>
+
+                        <Button onClick={() => deleteTodo.mutate(todo.id)} variant={"destructive"}>Delete task <Trash /></Button>
                     </div>
 
                     <DialogFooter>
-                        {addTodo.isError && (
-                            <p className="text-red-500 text-sm">
-                                {addTodo.error.message || "Failed to add todo."}
-                            </p>
-                        )}
                         <DialogClose asChild>
                             <button type="button" className="px-4 py-2 rounded border">
                                 Cancel
@@ -155,15 +167,15 @@ export function CreateTodo({ search }: CreateTodoProps) {
                         </DialogClose>
                         <button
                             type="button"
-                            onClick={handleAdd}
-                            disabled={addTodo.isPending}
+                            onClick={handleUpdate}
+                            disabled={updateTodo.isPending}
                             className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
                         >
-                            {addTodo.isPending ? "Adding..." : "Add task"}
+                            {updateTodo.isPending ? "Updating..." : "Update task"}
                         </button>
                     </DialogFooter>
                 </DialogContent>
             </form>
         </Dialog>
-    );
+    )
 }

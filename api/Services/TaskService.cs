@@ -6,7 +6,7 @@ namespace Unimicro_to_do_list.Services
 {
     public interface ITaskService
     {
-        Task<(List<TodoTask> Tasks, int TotalCount)> GetAllTasksAsync(string? searchTerm = null, bool? completed = null, int skip = 0, int take = 20);
+        Task<(List<TodoTask> Tasks, int TotalCount, int CompletedCount)> GetAllTasksAsync(string? searchTerm = null, bool? completed = null, bool? overdue = null, int skip = 0, int take = 20, string? orderBy = "CreatedAt", bool ascending = false);
         Task<TodoTask?> GetTaskAsync(string id);
         Task<TodoTask> CreateTaskAsync(TodoTask task);
         Task<TodoTask> UpdateTaskAsync(string id, TodoTask task);
@@ -23,28 +23,51 @@ namespace Unimicro_to_do_list.Services
             _context = context;
         }
 
-        public async Task<(List<TodoTask> Tasks, int TotalCount)> GetAllTasksAsync(
+        public async Task<(List<TodoTask> Tasks, int TotalCount, int CompletedCount)> GetAllTasksAsync(
             string? searchTerm = null,
             bool? completed = null,
+            bool? overdue = null,
             int skip = 0,
-            int take = 20)
+            int take = 20,
+            string? orderBy = "CreatedAt",
+            bool ascending = false)
         {
             var query = _context.Tasks.Include(t => t.TaskTags).AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
                 query = query.Where(t => t.Title.Contains(searchTerm) || t.TaskTags.Any(tt => tt.Tag.Contains(searchTerm)));
-
-            if (completed.HasValue)
-                query = query.Where(t => t.Completed == completed.Value);
+            }
 
             var totalCount = await query.CountAsync();
 
-            var tasks = await query.OrderByDescending(t => t.CreatedAt)
-                                   .Skip(skip)
+            var completedCount = await query.CountAsync(t => t.Completed);
+
+            if (completed.HasValue)
+            {
+                query = query.Where(t => t.Completed == completed.Value);
+            }
+
+            if (overdue.HasValue)
+            {
+                var now = DateTime.UtcNow;
+                query = query.Where(t => !t.Completed && t.DueDate < now);
+            }
+
+            // Ordering
+            query = orderBy?.ToLower() switch
+            {
+                "title" => ascending ? query.OrderBy(t => t.Title) : query.OrderByDescending(t => t.Title),
+                "duedate" => ascending ? query.OrderBy(t => t.DueDate) : query.OrderByDescending(t => t.DueDate),
+                "updatedat" => ascending ? query.OrderBy(t => t.UpdatedAt) : query.OrderByDescending(t => t.UpdatedAt),
+                _ => ascending ? query.OrderBy(t => t.CreatedAt) : query.OrderByDescending(t => t.CreatedAt),
+            };
+
+            var tasks = await query.Skip(skip)
                                    .Take(take)
                                    .ToListAsync();
 
-            return (tasks, totalCount);
+            return (tasks, totalCount, completedCount);
         }
 
 
