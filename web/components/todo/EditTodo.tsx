@@ -6,14 +6,14 @@ import {
     DialogHeader,
     DialogTitle,
     DialogTrigger,
-} from "./ui/dialog";
+} from "../ui/dialog";
 import { useState, useEffect } from "react";
 import { Pencil } from "lucide-react";
 import { Todo } from "@/hooks/useTodo";
 import { UseMutationResult } from "@tanstack/react-query";
-import { Label } from "./ui/label";
-import { Button } from "./ui/button";
-import { Badge } from "./ui/badge";
+import { Label } from "../ui/label";
+import { Button } from "../ui/button";
+import { Badge } from "../ui/badge";
 import { X, Trash } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 

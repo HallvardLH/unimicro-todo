@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef } from "react";
 import { Search } from "lucide-react";
-import { Input } from "./ui/input";
+import { Input } from "../ui/input";
 
 interface SearchInputProps {
     value: string;

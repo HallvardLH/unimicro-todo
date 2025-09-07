@@ -1,6 +1,6 @@
-import { Card } from "./ui/card";
-import { Checkbox } from "./ui/checkbox";
-import { Badge } from "./ui/badge";
+import { Card } from "../ui/card";
+import { Checkbox } from "../ui/checkbox";
+import { Badge } from "../ui/badge";
 import { Todo } from "@/hooks/useTodo";
 import { format } from "date-fns";
 import { UseMutationResult } from "@tanstack/react-query";

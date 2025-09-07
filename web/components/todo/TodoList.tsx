@@ -2,39 +2,56 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useTodos, Todo } from "../hooks/useTodo";
+import { useTodos, Todo } from "../../hooks/useTodo";
 import { SearchInput } from "./SearchInput";
 import { TodoItem } from "./TodoItem";
 import { CreateTodo } from "./CreateTodo";
-import { StatBox } from "./Statbox";
+import { TodoHeader } from "./TodoHeader";
 
 export function TodoList() {
     const [searchTerm, setSearchTerm] = useState("");
     const [debouncedSearch, setDebouncedSearch] = useState("");
 
-    const [filterCompleted, setFilterCompleted] = useState<boolean>(false);
-    const [filterIncomplete, setFilterIncomplete] = useState<boolean>(false);
-    const [filterOverdue, setFilterOverdue] = useState<boolean>(false);
+    const [filters, setFilters] = useState({
+        completed: false,
+        incomplete: false,
+        overdue: false,
+    })
 
     const [orderBy, setOrderBy] = useState<"CreatedAt" | "DueDate" | "Title">("CreatedAt");
     const [ascending, setAscending] = useState<boolean>(false);
 
     const pageSize = 20;
 
+    const toggleFilter = (filter: "completed" | "incomplete" | "overdue") => {
+        setFilters(prev => {
+            if (filter === "completed") {
+                return { ...prev, completed: !prev.completed, incomplete: false }
+            }
+            if (filter === "incomplete") {
+                return { ...prev, incomplete: !prev.incomplete, completed: false }
+            }
+            if (filter === "overdue") {
+                return { ...prev, overdue: !prev.overdue }
+            }
+            return prev
+        })
+    }
+
+    const completedFilter =
+        filters.completed && !filters.incomplete
+            ? true
+            : !filters.completed && filters.incomplete
+                ? false
+                : undefined;
+
+    const overdueFilter = filters.overdue ? true : undefined;
+
     // debounce search term
     useEffect(() => {
         const handler = setTimeout(() => setDebouncedSearch(searchTerm), 300);
         return () => clearTimeout(handler);
     }, [searchTerm]);
-
-    const completedFilter =
-        filterCompleted && !filterIncomplete
-            ? true
-            : !filterCompleted && filterIncomplete
-                ? false
-                : undefined;
-
-    const overdueFilter = filterOverdue ? true : undefined;
 
     const { todosQuery, updateTodo, deleteTodo } = useTodos(
         debouncedSearch,
@@ -80,33 +97,20 @@ export function TodoList() {
 
     return (
         <div className="max-w-xl w-xl mx-auto space-y-4 text-center">
-            <h1 className="text-4xl font-bold mb-2">Todo List</h1>
+            <h1 className="text-5xl font-bold mb-2">Todo List</h1>
 
             {/* Stats */}
-            <div className="grid grid-cols-2 gap-4">
-                <StatBox variant="total" label="Total tasks" value={totalCount} isActive={true} showCheckbox={false} />
-                <StatBox
-                    variant="completed"
-                    label="Completed"
-                    value={completedCount}
-                    onClick={() => setFilterCompleted(prev => !prev)}
-                    isActive={filterCompleted}
-                />
-                <StatBox
-                    variant="incomplete"
-                    label="Incomplete"
-                    value={totalCount - completedCount}
-                    onClick={() => setFilterIncomplete(prev => !prev)}
-                    isActive={filterIncomplete}
-                />
-                <StatBox
-                    variant="overdue"
-                    label="Overdue"
-                    value={allTasks.filter(t => !t.completed && t.dueDate && new Date(t.dueDate) < new Date()).length}
-                    onClick={() => setFilterOverdue(prev => !prev)}
-                    isActive={filterOverdue}
-                />
-            </div>
+            <TodoHeader
+                totalCount={totalCount}
+                completedCount={completedCount}
+                overdueCount={allTasks.filter(t => !t.completed && t.dueDate && new Date(t.dueDate) < new Date()).length}
+                onToggleFilter={toggleFilter}
+                filters={{
+                    completed: filters.completed,
+                    incomplete: filters.incomplete,
+                    overdue: filters.overdue,
+                }}
+            />
 
             {/* Search bar */}
             <SearchInput value={searchTerm} onSearchChange={setSearchTerm} />
@@ -124,7 +128,7 @@ export function TodoList() {
             </div>
 
             <div className="flex justify-between">
-                <span>To be done</span>
+                <span className="text-2xl font-bold">To be done</span>
                 <CreateTodo search={debouncedSearch} />
             </div>
 

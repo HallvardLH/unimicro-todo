@@ -1,4 +1,4 @@
-import { Checkbox } from "./ui/checkbox";
+import { Checkbox } from "../ui/checkbox";
 import { BookCheck, CircleCheck, Clock, BookAlert } from "lucide-react";
 
 interface StatBoxProps {

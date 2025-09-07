@@ -9,12 +9,12 @@ import {
     DialogHeader,
     DialogTitle,
     DialogTrigger,
-} from "./ui/dialog";
-import { Label } from "./ui/label";
-import { Button } from "./ui/button";
+} from "../ui/dialog";
+import { Label } from "../ui/label";
+import { Button } from "../ui/button";
 import { useTodos } from "@/hooks/useTodo";
 import { Tags, X } from "lucide-react";
-import { Badge } from "./ui/badge";
+import { Badge } from "../ui/badge";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface CreateTodoProps {
