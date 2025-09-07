@@ -4,6 +4,11 @@ using Unimicro_to_do_list.Services;
 
 namespace Unimicro_to_do_list.Controllers
 {
+    /// <summary>
+    /// Controller for managing Todo tasks.
+    /// Provides endpoints to create, read, update, and delete tasks.
+    /// Returns DTOs to comply with REST principles (avoids exposing EF entities directly).
+    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
     public class TodoController : ControllerBase
@@ -12,15 +17,23 @@ namespace Unimicro_to_do_list.Controllers
         private readonly ITaskService _taskService;
         private readonly ILogger<TodoController> _logger;
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="TodoController"/>.
+        /// </summary>
+        /// <param name="taskService">Service for interacting with tasks.</param>
+        /// <param name="logger">Logger instance.</param>
         public TodoController(ITaskService taskService, ILogger<TodoController> logger)
         {
             _taskService = taskService;
             _logger = logger;
         }
 
-        // In order to comply with the REST contract,
-        // We dont't want to expose the entities directly,
-        // Instead, we return an object with tags as an array of strings
+        /// <summary>
+        /// Data Transfer Object for Todo tasks.
+        /// In order to comply with the REST contract,
+        /// We dont't want to expose the entities directly,
+        /// Instead, we return an object with tags as an array of strings
+        /// </summary>
         public class TodoTaskDto
         {
             public string Id { get; set; } = null!;
@@ -32,7 +45,9 @@ namespace Unimicro_to_do_list.Controllers
             public List<string> Tags { get; set; } = new List<string>();
         }
 
-        // Helper function to map from EF entity to DTO
+        /// <summary>
+        /// Maps EF TodoTask entity to TodoTaskDto.
+        /// </summary>
         private TodoTaskDto ToDto(TodoTask task) =>
             new TodoTaskDto
             {
@@ -46,6 +61,18 @@ namespace Unimicro_to_do_list.Controllers
                 Tags = task.TaskTags.Select(tt => tt.Tag).ToList()
             };
 
+        /// <summary>
+        /// Gets a paginated list of Todo tasks.
+        /// Supports optional filtering by search term, completion, overdue status, and sorting.
+        /// </summary>
+        /// <param name="searchTerm">Filter by task title containing this term.</param>
+        /// <param name="completed">Filter completed (true) or incomplete (false) tasks.</param>
+        /// <param name="overdue">Filter overdue tasks.</param>
+        /// <param name="skip">Number of tasks to skip (pagination).</param>
+        /// <param name="take">Number of tasks to return (pagination).</param>
+        /// <param name="orderBy">Field to order by ("CreatedAt", "DueDate", "Title").</param>
+        /// <param name="ascending">Whether to sort ascending.</param>
+        /// <returns>List of TodoTaskDto objects with counts.</returns>
         [HttpGet]
         public async Task<ActionResult<List<TodoTaskDto>>> GetTasks(
             [FromQuery] string? searchTerm = null,
@@ -62,11 +89,13 @@ namespace Unimicro_to_do_list.Controllers
 
             try
             {
+                // We call the service to fetch tasks as well as related counts
                 var (tasks, totalCount, completedCount) = await _taskService.GetAllTasksAsync(
                     searchTerm, completed, overdue, skip, take, orderBy, ascending);
 
                 _logger.LogInformation("Fetched {Count} tasks", tasks.Count);
 
+                // We return the tasks as DTOs, along with count
                 return Ok(new
                 {
                     tasks = tasks.Select(ToDto),
@@ -82,8 +111,9 @@ namespace Unimicro_to_do_list.Controllers
             }
         }
 
-        // GET: api/todo/{id}
-        // Lets you query for a certain todo by its id
+        /// <summary>
+        /// Gets a single task by its ID.
+        /// </summary>
         [HttpGet("{id}")]
         public async Task<ActionResult<TodoTaskDto>> GetById(string id)
         {
@@ -92,8 +122,9 @@ namespace Unimicro_to_do_list.Controllers
             return Ok(ToDto(todo));
         }
 
-        // POST: api/todo
-        // Lest you create a new task
+        /// <summary>
+        /// Creates a new task.
+        /// </summary>
         [HttpPost]
         public async Task<ActionResult<TodoTaskDto>> Create([FromBody] TodoInput input)
         {
@@ -107,6 +138,7 @@ namespace Unimicro_to_do_list.Controllers
 
             try
             {
+                // We crreate an EF entity from input
                 var newTodo = new TodoTask
                 {
                     Title = input.Title,
@@ -115,8 +147,12 @@ namespace Unimicro_to_do_list.Controllers
                     TaskTags = input.Tags?.Select(tag => new TaskTag { Tag = tag }).ToList() ?? new List<TaskTag>(),
                 };
 
+                // Persist task using service
                 var createdTask = await _taskService.CreateTaskAsync(newTodo);
+
                 _logger.LogInformation("Task created with ID: {Id}", createdTask.Id);
+
+                // Returns the created task DTO with a 201 status
                 return CreatedAtAction(nameof(GetById), new { id = createdTask.Id }, ToDto(createdTask));
             }
             catch (Exception ex)
@@ -126,7 +162,9 @@ namespace Unimicro_to_do_list.Controllers
             }
         }
 
-        // PUT: api/todo/{id}
+        /// <summary>
+        /// Updates an existing task by ID.
+        /// </summary>
         [HttpPut("{id}")]
         public async Task<ActionResult<TodoTaskDto>> Update(string id, [FromBody] TodoInput input)
         {
@@ -156,6 +194,7 @@ namespace Unimicro_to_do_list.Controllers
             }
             catch (ArgumentException)
             {
+                // Return 404 if the task does nto exist
                 _logger.LogWarning("Task {Id} not found for update", id);
                 return NotFound();
             }
@@ -166,12 +205,15 @@ namespace Unimicro_to_do_list.Controllers
             }
         }
 
-        // DELETE: api/todo/{id}
+        /// <summary>
+        /// Deletes a task by ID.
+        /// </summary>
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(string id)
         {
             _logger.LogInformation("Deleting task {Id}", id);
 
+            // Check if task exists
             var existing = await _taskService.GetTaskAsync(id);
             if (existing == null)
             {

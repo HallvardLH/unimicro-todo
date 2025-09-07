@@ -4,15 +4,49 @@ using Unimicro_to_do_list.Models;
 
 namespace Unimicro_to_do_list.Services
 {
+    /// <summary>
+    /// Interface for task management service.
+    /// Defines all operations for CRUD, filtering, and ordering of Todo tasks.
+    /// </summary>
     public interface ITaskService
     {
-        Task<(List<TodoTask> Tasks, int TotalCount, int CompletedCount)> GetAllTasksAsync(string? searchTerm = null, bool? completed = null, bool? overdue = null, int skip = 0, int take = 20, string? orderBy = "CreatedAt", bool ascending = false);
+        /// <summary>
+        /// Retrieves tasks with optional search, filter, pagination, and ordering.
+        /// </summary>
+        Task<(List<TodoTask> Tasks, int TotalCount, int CompletedCount)> GetAllTasksAsync(
+            string? searchTerm = null,
+            bool? completed = null,
+            bool? overdue = null,
+            int skip = 0,
+            int take = 20,
+            string? orderBy = "CreatedAt",
+            bool ascending = false);
+
+        /// <summary>
+        /// Retrieves a single task by ID.
+        /// </summary>
         Task<TodoTask?> GetTaskAsync(string id);
+
+        /// <summary>
+        /// Creates a new task.
+        /// </summary>
         Task<TodoTask> CreateTaskAsync(TodoTask task);
+
+        /// <summary>
+        /// Updates an existing task.
+        /// </summary>
         Task<TodoTask> UpdateTaskAsync(string id, TodoTask task);
+
+        /// <summary>
+        /// Deletes a task by ID.
+        /// </summary>
         Task DeleteTaskAsync(string id);
     }
 
+    /// <summary>
+    /// Implementation of <see cref="ITaskService"/> using Entity Framework Core.
+    /// Handles all database operations for Todo tasks.
+    /// </summary>
     public class TaskService : ITaskService
     {
         private readonly ApplicationDbContext _context;
@@ -23,6 +57,7 @@ namespace Unimicro_to_do_list.Services
             _context = context;
         }
 
+        /// <inheritdoc/>
         public async Task<(List<TodoTask> Tasks, int TotalCount, int CompletedCount)> GetAllTasksAsync(
             string? searchTerm = null,
             bool? completed = null,
@@ -32,22 +67,26 @@ namespace Unimicro_to_do_list.Services
             string? orderBy = "CreatedAt",
             bool ascending = false)
         {
+            // We start the query including related TaskTags
             var query = _context.Tasks.Include(t => t.TaskTags).AsQueryable();
 
+            // If search is included, we include the filter
             if (!string.IsNullOrWhiteSpace(searchTerm))
             {
                 query = query.Where(t => t.Title.Contains(searchTerm) || t.TaskTags.Any(tt => tt.Tag.Contains(searchTerm)));
             }
 
+            // We calculate total and completed counts
             var totalCount = await query.CountAsync();
-
             var completedCount = await query.CountAsync(t => t.Completed);
 
+            // Filtering by completion status
             if (completed.HasValue)
             {
                 query = query.Where(t => t.Completed == completed.Value);
             }
 
+            // Filter by overdue status
             if (overdue.HasValue)
             {
                 var now = DateTime.UtcNow;
@@ -63,6 +102,7 @@ namespace Unimicro_to_do_list.Services
                 _ => ascending ? query.OrderBy(t => t.CreatedAt) : query.OrderByDescending(t => t.CreatedAt),
             };
 
+            // Apply pagination
             var tasks = await query.Skip(skip)
                                    .Take(take)
                                    .ToListAsync();
@@ -71,15 +111,16 @@ namespace Unimicro_to_do_list.Services
         }
 
 
-        // Retrieve a single task by ID
+        /// <inheritdoc/>
         public async Task<TodoTask?> GetTaskAsync(string id)
         {
+            // Retrieve a single task including its tags
             return await _context.Tasks
                 .Include(t => t.TaskTags)
                 .FirstOrDefaultAsync(t => t.Id == id);
         }
 
-        // Create a new task
+        /// <inheritdoc/>
         public async Task<TodoTask> CreateTaskAsync(TodoTask task)
         {
             task.Id = Guid.NewGuid().ToString(); // Creates a unique id
@@ -112,7 +153,7 @@ namespace Unimicro_to_do_list.Services
             return task;
         }
 
-        // Update an existing task
+        /// <inheritdoc/>
         public async Task<TodoTask> UpdateTaskAsync(string id, TodoTask taskUpdate)
         {
             // Finds the task in the database
@@ -123,7 +164,7 @@ namespace Unimicro_to_do_list.Services
             if (existingTask == null)
                 throw new ArgumentException("Task not found");
 
-
+            // Updating the task properties
             existingTask.Title = taskUpdate.Title;
             existingTask.Completed = taskUpdate.Completed;
             existingTask.DueDate = taskUpdate.DueDate;
@@ -146,7 +187,7 @@ namespace Unimicro_to_do_list.Services
             return existingTask;
         }
 
-        // Deletes a task by ID
+        /// <inheritdoc/>
         public async Task DeleteTaskAsync(string id)
         {
             var task = await _context.Tasks.FindAsync(id);
