@@ -15,7 +15,7 @@ cd unimicro-todo
 
 ### Backend setup
 ```sh
-cd backend
+cd api
 dotnet restore
 dotnet ef database update
 dotnet run
